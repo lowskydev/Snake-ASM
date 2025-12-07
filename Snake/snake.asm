@@ -36,9 +36,29 @@ EXTRN GetAsyncKeyState: PROC
 		; Draw Snake Head
 		call DrawSnakeHead
 
-		mov rcx, 3000
-		call Sleep
+		; Main game loop
+	GameLoop:
+		; Check if game is over
+		mov rax, gameOver
+		cmp rax, 1
+		je GameEnd
 		
+		; Check keyboard input
+		call CheckKeyboard
+		
+		; Move the snake
+		call MoveSnake
+		
+		; Game speed
+		sub rsp, 32
+		mov rcx, 150 ; Sleep for 150 ms
+		call Sleep
+		add rsp, 32
+		
+		; Continue loop
+		jmp GameLoop
+
+	GameEnd:
 		; Exit
 		mov rcx, 0
 		call ExitProcess
