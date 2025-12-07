@@ -10,23 +10,37 @@ EXTRN srand: PROC
 EXTRN rand: PROC
 
 .data
+	consoleHandle QWORD ? ; Console output handle
+    bytesWritten DWORD ? ; Required by WriteConsoleA
+    STD_OUTPUT_HANDLE EQU -11 ; Param to get output handle
+
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
+	clearSpaces BYTE '                    ', 0  ; used for clearing
 
     ; Game over message
     gameOverMsg BYTE 'GAME OVER!', 0
     gameOverMsgLen EQU $ - gameOverMsg - 1
+
+	gameOver QWORD 0 ; 0 = fun, 1 = game over
+
+    ; Score message
+    scoreLabel BYTE 'Score: ', 0
+    scoreLabelLen EQU $ - scoreLabel - 1
+	scoreBuffer BYTE 20 DUP(0) ; Buffer for score as string
+
+    score QWORD 0 ; Player score
+
+	; Food data
+    foodChar BYTE '*', 0
+    foodX WORD 0
+    foodY WORD 0
 
 	; Snake head position
 	snakeHeadChar BYTE '@', 0
     snakeHeadX WORD 40
     snakeHeadY WORD 12
 	
-	; Food data
-    foodChar BYTE '*', 0
-    foodX WORD 0
-    foodY WORD 0
-
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
@@ -34,12 +48,6 @@ EXTRN rand: PROC
 	bodyChar BYTE '+', 0
 	snakeBody WORD 400 DUP(?) ; 200 segments * 2 WORDs (X,Y)
     snakeDim QWORD 1
-
-	gameOver QWORD 0 ; 0 = fun, 1 = game over
-
-	consoleHandle QWORD ? ; Console output handle
-    bytesWritten DWORD ? ; Required by WriteConsoleA
-    STD_OUTPUT_HANDLE EQU -11 ; Param to get output handle
 
 .code 
 	main PROC
@@ -64,6 +72,8 @@ EXTRN rand: PROC
 		call PlaceFood
 		call DrawFood
 
+		call DisplayScore
+
 		; Main game loop
 	GameLoop:
 		; Check if game is over
@@ -76,6 +86,9 @@ EXTRN rand: PROC
 		
 		; Move the snake
 		call MoveSnake
+
+		call UpdateScore
+		call DisplayScore
 
 		; Check if snake ate food
 		call CheckFoodCollision
@@ -468,6 +481,23 @@ EXTRN rand: PROC
 
 	; ShowGameOver - Tell user that he lost 
 	ShowGameOver PROC
+		; Erase the score display next to wall
+		mov rcx, 82
+		mov rdx, 1
+		call SetCursorPosition
+		
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces ; 20 spaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+
 		; Position cursor at center
 		mov rcx, 35
 		mov rdx, 12
@@ -479,6 +509,40 @@ EXTRN rand: PROC
 		mov rcx, consoleHandle
 		lea rdx, gameOverMsg
 		mov r8, gameOverMsgLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+
+		; Show final score
+		mov rcx, 32
+		mov rdx, 14
+		call SetCursorPosition
+		
+		; Write final score label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, scoreLabel
+		mov r8, scoreLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert and display final score
+		mov rax, score
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		
+		mov r8, rcx ; Move length
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
 		lea r9, bytesWritten
 		mov qword ptr [rsp+32], 0
 		
@@ -672,4 +736,125 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	CheckSelfCollision ENDP
+
+	; ConvertScoreToString - Convert score to string
+	; Input: RAX = score
+	; Output: scoreBuffer containg string
+	; Returns: RCX = string length
+	ConvertScoreToString PROC
+		push rbx
+		push rdi
+		push r12
+		
+		; Clear the buffer
+		mov rcx, 20
+		lea rdi, scoreBuffer
+		mov al, 0
+		rep stosb
+		
+		; When score = 0
+		mov rax, score
+		test rax, rax
+		jnz NotZero
+		
+		lea rdi, scoreBuffer
+		mov byte ptr [rdi], '0'
+		mov rcx, 1
+		jmp ConvertDone
+
+	NotZero:
+		; Convert number to string
+		lea rdi, scoreBuffer
+		mov rbx, 10 ; Divisor
+		xor r12, r12 ; Digit counter
+		
+		mov rax, score
+
+	ConvertLoop:
+		xor rdx, rdx
+		div rbx ; Divide by 10 (remainder in RDX)
+		add dl, '0' ; Convert to ASCII
+		mov [rdi + r12], dl ; Store digit
+		inc r12 ; Count digit
+		
+		test rax, rax ; Check if done
+		jnz ConvertLoop
+		
+		; Reverse the string
+		mov rcx, r12 ; String length
+		shr r12, 1 ; Divide by 2
+		lea rdi, scoreBuffer
+		lea rsi, scoreBuffer
+		add rsi, rcx
+		dec rsi ; Point to last char
+		
+	ReverseLoop:
+		test r12, r12
+		jz ConvertDone
+		
+		; Swap characters
+		mov al, [rdi]
+		mov bl, [rsi]
+		mov [rdi], bl
+		mov [rsi], al
+		
+		inc rdi
+		dec rsi
+		dec r12
+		jmp ReverseLoop
+
+	ConvertDone:
+		pop r12
+		pop rdi
+		pop rbx
+		ret
+	ConvertScoreToString ENDP
+
+	; DisplayScore - Display current score
+	DisplayScore PROC
+		mov rcx, 82
+		mov rdx, 1
+		call SetCursorPosition
+		
+		; Write score label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, scoreLabel
+		mov r8, scoreLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert score to string
+		mov rax, score
+		call ConvertScoreToString
+		
+		; Write the score number
+		sub rsp, 40
+		
+		mov r8, rcx ; move length
+
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayScore ENDP
+
+	; UpdateScore - Update score when snake moves
+	UpdateScore PROC
+		; Score = snake length * number of steps taken
+		mov rax, snakeDim
+		add score, rax
+		ret
+	UpdateScore ENDP
 END
