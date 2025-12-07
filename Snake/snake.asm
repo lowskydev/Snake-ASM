@@ -43,11 +43,18 @@ EXTRN rand: PROC
 		call GetStdHandle
 		mov consoleHandle, rax
 		
+		; Init random number genrator
+		call InitRandom
+
 		; Draw walls
 		call DrawWalls
 
 		; Draw Snake Head
 		call DrawSnakeHead
+
+		; Draw initial Food
+		call PlaceFood
+		call DrawFood
 
 		; Main game loop
 	GameLoop:
@@ -61,7 +68,17 @@ EXTRN rand: PROC
 		
 		; Move the snake
 		call MoveSnake
-		
+
+		; Check if snake ate food
+		call CheckFoodCollision
+		cmp rax, 1
+		jne NoFoodEaten
+
+		; Food was eaten
+		call PlaceFood
+		call DrawFood
+	
+	NoFoodEaten:
 		; Game speed
 		sub rsp, 32
 		mov rcx, 150 ; Sleep for 150 ms
@@ -474,7 +491,7 @@ EXTRN rand: PROC
 		cmp rax, rbx
 		jne NotEaten
 		
-		; Delicious ;)
+		; Delicious
 		mov rax, 1
 		ret
 
