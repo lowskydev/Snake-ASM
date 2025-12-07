@@ -6,6 +6,8 @@ EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
 EXTRN Sleep: PROC
 EXTRN GetAsyncKeyState: PROC
+EXTRN SetConsoleCursorInfo: PROC
+
 EXTRN srand: PROC
 EXTRN rand: PROC
 
@@ -55,6 +57,9 @@ EXTRN rand: PROC
 		mov rcx, STD_OUTPUT_HANDLE
 		call GetStdHandle
 		mov consoleHandle, rax
+
+		; Hide the cursor
+		call HideCursor
 		
 		; Init random number genrator
 		call InitRandom
@@ -118,6 +123,25 @@ EXTRN rand: PROC
 		mov rcx, 0
 		call ExitProcess
 	main ENDP
+
+	; HideCursor - Make the console cursor invisible
+	HideCursor PROC
+		sub rsp, 48 ; Shadow + CONSOLE_CURSOR_INFO
+		
+		; CONSOLE_CURSOR_INFO
+		; dwSize (DWORD) = 1
+		; bVisible (BOOL) = 0
+		mov dword ptr [rsp+32], 1 ; dwSize = 1
+		mov dword ptr [rsp+36], 0 ; bVisible = FALSE
+		
+		; Call SetConsoleCursorInfo
+		mov rcx, consoleHandle
+		lea rdx, [rsp+32]
+		call SetConsoleCursorInfo
+		
+		add rsp, 48
+		ret
+	HideCursor ENDP
 
 	; SetCursorPosition - Move cursor to X, Y
 	; Params: RCX = X (column), RDX = Y (row)
