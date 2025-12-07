@@ -497,6 +497,40 @@ EXTRN rand: PROC
 		call WriteConsoleA
 		
 		add rsp, 40
+
+		; Show final score
+		mov rcx, 32
+		mov rdx, 14
+		call SetCursorPosition
+		
+		; Write final score label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, scoreLabel
+		mov r8, scoreLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert and display final score
+		mov rax, score
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		
+		mov r8, rcx ; Move length
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
 		
 		; Wait so user can see the message
 		sub rsp, 32
