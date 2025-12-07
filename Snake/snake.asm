@@ -194,4 +194,46 @@ EXTRN GetAsyncKeyState: PROC
 		
 		ret
 	EraseSnakeHead ENDP
+
+	; MoveSnake - Move snake one step in current direction
+	; Desc: Updates snakeHeadX and snakeHeadY based on direction
+	MoveSnake PROC
+		; Erase current position
+		call EraseSnakeHead
+		
+		; Update position based on direction
+		mov rax, direction
+		
+		cmp rax, 0 ; Up
+		je MoveUp
+		cmp rax, 1 ; Down
+		je MoveDown
+		cmp rax, 2 ; Left
+		je MoveLeft
+		cmp rax, 3 ; Right
+		je MoveRight
+
+		jmp MoveEnd
+
+	MoveUp:
+		dec snakeHeadY
+		jmp MoveEnd
+		
+	MoveDown:
+		inc snakeHeadY
+		jmp MoveEnd
+		
+	MoveLeft:
+		dec snakeHeadX
+		jmp MoveEnd
+		
+	MoveRight:
+		inc snakeHeadX
+		jmp MoveEnd
+
+	MoveEnd:
+		; Draw at new position
+		call DrawSnakeHead
+		ret
+	MoveSnake ENDP
 END
