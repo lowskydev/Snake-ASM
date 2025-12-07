@@ -611,4 +611,10 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	DrawSnakeBody ENDP
+
+	; GrowSnake - Increment snake length
+	GrowSnake PROC
+		inc snakeDim
+		ret
+	GrowSnake ENDP
 END
