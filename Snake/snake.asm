@@ -298,8 +298,11 @@ EXTRN rand: PROC
 		jmp MoveEnd
 
 	MoveEnd:
-		; Check for collision
+		; Check wall collision
 		call CheckCollision
+
+		; Check snake body collision
+		call CheckSelfCollision
 
 		mov rax, gameOver
 		cmp rax, 1
