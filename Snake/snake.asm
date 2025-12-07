@@ -18,7 +18,7 @@ EXTRN GetAsyncKeyState: PROC
     snakeHeadX WORD 40
     snakeHeadY WORD 12
 
-	# Direction (0=Up, 1=Down, 2=Left, 3=Right)
+	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
 	gameOver QWORD 0 ; 0 = fun, 1 = game over
