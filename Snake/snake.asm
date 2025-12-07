@@ -51,6 +51,42 @@ EXTRN rand: PROC
 	snakeBody WORD 400 DUP(?) ; 200 segments * 2 WORDs (X,Y)
     snakeDim QWORD 1
 
+	; Menu data
+	menuSelection QWORD 0 ; Menu selection (0=Play, 1=Instructions, 2=Exit)
+	maxMenuItems QWORD 3 ; Number of menu items
+	hasPlayedOnce QWORD 0 ; 0 = first time, 1 = has played before
+	lastScore QWORD 0 ; Store last game score
+	highScore QWORD 0 ; Best score achieved
+	
+	; Menu strings
+	titleLine1 BYTE '         SNAKE GAME', 0
+	titleLine2 BYTE '    =====================', 0
+	
+	groupTitle BYTE '    Group Members:', 0
+	member1 BYTE '    - Wiktor Szydlowski (75135)', 0
+	member2 BYTE '    - Valerii Matviiv (75176)', 0
+	member3 BYTE '    - Markiian Voloshyn (75528)', 0
+	
+	menuPlay BYTE '      PLAY', 0
+	menuPlayAgain BYTE '      PLAY AGAIN', 0
+	menuInstructions BYTE '      HOW TO PLAY', 0
+	menuExit BYTE '      EXIT', 0
+	
+	menuArrow BYTE '    > ', 0
+	menuSpace BYTE '      ', 0
+	
+	highScoreText BYTE '    High Score: ', 0
+	yourScoreText BYTE '    Your Score: ', 0
+	
+	navHelp BYTE '    Use arrows and ENTER to select', 0
+	
+	; Instructions text
+	instTitle BYTE '         HOW TO PLAY', 0
+	instLine1 BYTE '    - Use arrow keys to move', 0
+	instLine2 BYTE '    - Eat food (*) to grow', 0
+	instLine3 BYTE '    - Avoid walls and yourself', 0
+	instLine4 BYTE '    - Press any key to return', 0
+
 .code 
 	main PROC
 		; Get console output handle
