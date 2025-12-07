@@ -26,6 +26,7 @@ EXTRN rand: PROC
     ; Score message
     scoreLabel BYTE 'Score: ', 0
     scoreLabelLen EQU $ - scoreLabel - 1
+	scoreBuffer BYTE 20 DUP(0) ; Buffer for score as string
 
     score QWORD 0 ; Player score
 
@@ -678,4 +679,77 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	CheckSelfCollision ENDP
+
+	; ConvertScoreToString - Convert score to string
+	; Input: RAX = score
+	; Output: scoreBuffer containg string
+	; Returns: RCX = string length
+	ConvertScoreToString PROC
+		push rbx
+		push rdi
+		push r12
+		
+		; Clear the buffer
+		mov rcx, 20
+		lea rdi, scoreBuffer
+		mov al, 0
+		rep stosb
+		
+		; When score = 0
+		mov rax, score
+		test rax, rax
+		jnz NotZero
+		
+		lea rdi, scoreBuffer
+		mov byte ptr [rdi], '0'
+		mov rcx, 1
+		jmp ConvertDone
+
+	NotZero:
+		; Convert number to string
+		lea rdi, scoreBuffer
+		mov rbx, 10 ; Divisor
+		xor r12, r12 ; Digit counter
+		
+		mov rax, score
+
+	ConvertLoop:
+		xor rdx, rdx
+		div rbx ; Divide by 10 (remainder in RDX)
+		add dl, '0' ; Convert to ASCII
+		mov [rdi + r12], dl ; Store digit
+		inc r12 ; Count digit
+		
+		test rax, rax ; Check if done
+		jnz ConvertLoop
+		
+		; Reverse the string
+		mov rcx, r12 ; String length
+		shr r12, 1 ; Divide by 2
+		lea rdi, scoreBuffer
+		lea rsi, scoreBuffer
+		add rsi, rcx
+		dec rsi ; Point to last char
+		
+	ReverseLoop:
+		test r12, r12
+		jz ConvertDone
+		
+		; Swap characters
+		mov al, [rdi]
+		mov bl, [rsi]
+		mov [rdi], bl
+		mov [rsi], al
+		
+		inc rdi
+		dec rsi
+		dec r12
+		jmp ReverseLoop
+
+	ConvertDone:
+		pop r12
+		pop rdi
+		pop rbx
+		ret
+	ConvertScoreToString ENDP
 END
