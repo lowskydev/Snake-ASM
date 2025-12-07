@@ -458,4 +458,28 @@ EXTRN rand: PROC
 		
 		ret
 	DrawFood ENDP
+
+	; CheckFoodCollision - Check if snake head is on food
+	; Returns: RAX = 1 if food eaten, 0 if not
+	CheckFoodCollision PROC
+		; Compare X positions
+		movzx rax, snakeHeadX
+		movzx rbx, foodX
+		cmp rax, rbx
+		jne NotEaten
+		
+		; Compare Y positions
+		movzx rax, snakeHeadY
+		movzx rbx, foodY
+		cmp rax, rbx
+		jne NotEaten
+		
+		; Delicious ;)
+		mov rax, 1
+		ret
+
+	NotEaten:
+		mov rax, 0
+		ret
+	CheckFoodCollision ENDP
 END
