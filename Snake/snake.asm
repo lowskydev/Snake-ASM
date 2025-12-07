@@ -621,4 +621,52 @@ EXTRN rand: PROC
 		inc snakeDim
 		ret
 	GrowSnake ENDP
+
+	; CheckSelfCollision - Check if snake head collided with its own body
+	CheckSelfCollision PROC
+		push r12
+		
+		; If snake length is 4 no body to collide with
+		mov rax, snakeDim
+		cmp rax, 4
+		jle SelfCollisionEnd
+		
+		; Get head position
+		movzx r8, snakeHeadX
+		movzx r9, snakeHeadY
+		
+		; Loop through body segments
+		mov r12, 1
+
+	CheckSelfLoop:
+		mov rax, snakeDim
+		cmp r12, rax
+		jge SelfCollisionEnd
+		
+		; Calculate offset: index * 4
+		mov rax, r12
+		shl rax, 2
+		
+		; Get body segment position
+		movzx rcx, word ptr [snakeBody + rax] ; Segment X
+		movzx rdx, word ptr [snakeBody + rax + 2] ; Segment Y
+		
+		; Compare with head position
+		cmp r8, rcx ; Compare X
+		jne NotThisSegment
+		cmp r9, rdx ; Compare Y
+		jne NotThisSegment
+		
+		; Collision detected
+		mov gameOver, 1
+		jmp SelfCollisionEnd
+
+	NotThisSegment:
+		inc r12
+		jmp CheckSelfLoop
+
+	SelfCollisionEnd:
+		pop r12
+		ret
+	CheckSelfCollision ENDP
 END
