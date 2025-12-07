@@ -752,4 +752,44 @@ EXTRN rand: PROC
 		pop rbx
 		ret
 	ConvertScoreToString ENDP
+
+	; DisplayScore - Display current score
+	DisplayScore PROC
+		mov rcx, 82
+		mov rdx, 1
+		call SetCursorPosition
+		
+		; Write score label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, scoreLabel
+		mov r8, scoreLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert score to string
+		mov rax, score
+		call ConvertScoreToString
+		
+		; Write the score number
+		sub rsp, 40
+		
+		mov r8, rcx ; move length
+
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayScore ENDP
 END
