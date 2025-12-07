@@ -54,6 +54,9 @@ EXTRN rand: PROC
 		; Draw walls
 		call DrawWalls
 
+		; Init snake body
+		call InitSnake
+
 		; Draw Snake Head
 		call DrawSnakeHead
 
@@ -80,6 +83,7 @@ EXTRN rand: PROC
 		jne NoFoodEaten
 
 		; Food was eaten
+		call GrowSnake
 		call PlaceFood
 		call DrawFood
 	
