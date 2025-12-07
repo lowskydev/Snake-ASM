@@ -3,6 +3,7 @@ EXTRN GetStdHandle: PROC
 EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
 EXTRN Sleep: PROC
+EXTRN GetAsyncKeyState: PROC
 
 .data
 	consoleHandle QWORD ?       ; Console output handle
@@ -11,6 +12,16 @@ EXTRN Sleep: PROC
     
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
+	snakeHeadChar BYTE '@', 0
+
+	; Snake head position
+    snakeHeadX WORD 40
+    snakeHeadY WORD 12
+
+	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
+	direction QWORD 3
+
+	gameOver QWORD 0 ; 0 = fun, 1 = game over
 
 .code 
 	main PROC
@@ -19,9 +30,35 @@ EXTRN Sleep: PROC
 		call GetStdHandle
 		mov consoleHandle, rax
 		
-		; Draw the walls
+		; Draw walls
 		call DrawWalls
+
+		; Draw Snake Head
+		call DrawSnakeHead
+
+		; Main game loop
+	GameLoop:
+		; Check if game is over
+		mov rax, gameOver
+		cmp rax, 1
+		je GameEnd
 		
+		; Check keyboard input
+		call CheckKeyboard
+		
+		; Move the snake
+		call MoveSnake
+		
+		; Game speed
+		sub rsp, 32
+		mov rcx, 150 ; Sleep for 150 ms
+		call Sleep
+		add rsp, 32
+		
+		; Continue loop
+		jmp GameLoop
+
+	GameEnd:
 		; Exit
 		mov rcx, 0
 		call ExitProcess
@@ -149,4 +186,139 @@ EXTRN Sleep: PROC
 		pop r12
 		ret
 	DrawWalls ENDP
+
+	; DrawSnakeHead - Draw Snake Head at postion
+	; Params: Uses the snakeHeadX and snakeHeadY
+	DrawSnakeHead PROC
+		; Set cursor to snake head position
+		movzx rcx, snakeHeadX
+		movzx rdx, snakeHeadY
+		call SetCursorPosition
+		
+		lea rcx, snakeHeadChar
+		call DrawChar
+		
+		ret
+	DrawSnakeHead ENDP
+
+	; EraseSnakeHead - Erase Snake Head at its position
+	; Params: Uses the snakeHeadX and snakeHeadY
+	EraseSnakeHead PROC
+		; Set cursor to snake head position
+		movzx rcx, snakeHeadX
+		movzx rdx, snakeHeadY
+		call SetCursorPosition
+		
+		lea rcx, spaceChar
+		call DrawChar
+		
+		ret
+	EraseSnakeHead ENDP
+
+	; MoveSnake - Move snake one step in current direction
+	; Desc: Updates snakeHeadX and snakeHeadY based on direction
+	MoveSnake PROC
+		; Erase current position
+		call EraseSnakeHead
+		
+		; Update position based on direction
+		mov rax, direction
+		
+		cmp rax, 0 ; Up
+		je MoveUp
+		cmp rax, 1 ; Down
+		je MoveDown
+		cmp rax, 2 ; Left
+		je MoveLeft
+		cmp rax, 3 ; Right
+		je MoveRight
+
+		jmp MoveEnd
+
+	MoveUp:
+		dec snakeHeadY
+		jmp MoveEnd
+		
+	MoveDown:
+		inc snakeHeadY
+		jmp MoveEnd
+		
+	MoveLeft:
+		dec snakeHeadX
+		jmp MoveEnd
+		
+	MoveRight:
+		inc snakeHeadX
+		jmp MoveEnd
+
+	MoveEnd:
+		; Draw at new position
+		call DrawSnakeHead
+		ret
+	MoveSnake ENDP
+
+	; CheckKeyboard - Check arrow key press and update direction
+	CheckKeyboard PROC
+		; Arrow key codes: Up=26h, Down=28h, Left=25h, Right=27h
+		
+		sub rsp, 40 ; Shadow
+		
+		; Check Up arrow
+		mov rcx, 26h
+		call GetAsyncKeyState
+		test ax, 8000h ; Check if key is pressed (high bit set)
+		jz CheckDown
+
+		; Prevent going down if going up
+		mov rax, direction
+		cmp rax, 1 ; Don't allow up if going down
+		je CheckDown
+		mov direction, 0 ; Set direction to Up
+		jmp CheckKeyboardEnd
+
+	CheckDown:
+		; Check Down arrow
+		mov rcx, 28h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckLeft
+
+		; Prevent going up if going down
+		mov rax, direction
+		cmp rax, 0 ; Don't allow down if going up
+		je CheckLeft
+		mov direction, 1 ; Set direction to Down
+		jmp CheckKeyboardEnd
+
+	CheckLeft:
+		; Check Left arrow
+		mov rcx, 25h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckRight
+
+		; Prevent going right if going left
+		mov rax, direction
+		cmp rax, 3 ; Don't allow left if going right
+		je CheckRight
+		mov direction, 2 ; Set direction to Left
+		jmp CheckKeyboardEnd
+
+	CheckRight:
+		; Check Right arrow
+		mov rcx, 27h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckKeyboardEnd
+
+		; Prevent going left if going right
+		mov rax, direction
+		cmp rax, 2 ; Don't allow right if going left
+		je CheckKeyboardEnd
+		mov direction, 3 ; Set direction to Right
+
+	CheckKeyboardEnd:
+		add rsp, 40
+		ret
+	CheckKeyboard ENDP
 END
