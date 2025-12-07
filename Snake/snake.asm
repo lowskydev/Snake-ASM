@@ -236,4 +236,69 @@ EXTRN GetAsyncKeyState: PROC
 		call DrawSnakeHead
 		ret
 	MoveSnake ENDP
+
+	; CheckKeyboard - Check arrow key press and update direction
+	CheckKeyboard PROC
+		; Arrow key codes: Up=26h, Down=28h, Left=25h, Right=27h
+		
+		sub rsp, 40 ; Shadow
+		
+		; Check Up arrow
+		mov rcx, 26h
+		call GetAsyncKeyState
+		test ax, 8000h ; Check if key is pressed (high bit set)
+		jz CheckDown
+
+		; Prevent going down if going up
+		mov rax, direction
+		cmp rax, 1 ; Don't allow up if going down
+		je CheckDown
+		mov direction, 0 ; Set direction to Up
+		jmp CheckKeyboardEnd
+
+	CheckDown:
+		; Check Down arrow
+		mov rcx, 28h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckLeft
+
+		; Prevent going up if going down
+		mov rax, direction
+		cmp rax, 0 ; Don't allow down if going up
+		je CheckLeft
+		mov direction, 1 ; Set direction to Down
+		jmp CheckKeyboardEnd
+
+	CheckLeft:
+		; Check Left arrow
+		mov rcx, 25h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckRight
+
+		; Prevent going right if going left
+		mov rax, direction
+		cmp rax, 3 ; Don't allow left if going right
+		je CheckRight
+		mov direction, 2 ; Set direction to Left
+		jmp CheckKeyboardEnd
+
+	CheckRight:
+		; Check Right arrow
+		mov rcx, 27h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckKeyboardEnd
+
+		; Prevent going left if going right
+		mov rax, direction
+		cmp rax, 2 ; Don't allow right if going left
+		je CheckKeyboardEnd
+		mov direction, 3 ; Set direction to Right
+
+	CheckKeyboardEnd:
+		add rsp, 40
+		ret
+	CheckKeyboard ENDP
 END
