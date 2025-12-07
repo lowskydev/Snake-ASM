@@ -182,6 +182,7 @@ EXTRN GetAsyncKeyState: PROC
 	DrawSnakeHead ENDP
 
 	; EraseSnakeHead - Erase Snake Head at its position
+	; Params: Uses the snakeHeadX and snakeHeadY
 	EraseSnakeHead PROC
 		; Set cursor to snake head position
 		movzx rcx, snakeHeadX
