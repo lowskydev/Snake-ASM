@@ -11,6 +11,11 @@ EXTRN Sleep: PROC
     
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
+	snakeHeadChar BYTE '@', 0
+
+	; Snake head position
+    snakeHeadX WORD 40
+    snakeHeadY WORD 12
 
 .code 
 	main PROC
@@ -19,8 +24,14 @@ EXTRN Sleep: PROC
 		call GetStdHandle
 		mov consoleHandle, rax
 		
-		; Draw the walls
+		; Draw walls
 		call DrawWalls
+
+		; Draw Snake Head
+		call DrawSnakeHead
+
+		mov rcx, 3000
+		call Sleep
 		
 		; Exit
 		mov rcx, 0
@@ -149,4 +160,18 @@ EXTRN Sleep: PROC
 		pop r12
 		ret
 	DrawWalls ENDP
+
+	; DrawSnakeHead - Draw Snake Head at postion
+	; Params: Uses the snakeHeadX and snakeHeadY
+	DrawSnakeHead PROC
+		; Set cursor to snake head position
+		movzx rcx, snakeHeadX
+		movzx rdx, snakeHeadY
+		call SetCursorPosition
+		
+		lea rcx, snakeHeadChar
+		call DrawChar
+		
+		ret
+	DrawSnakeHead ENDP
 END
