@@ -14,6 +14,10 @@ EXTRN GetAsyncKeyState: PROC
     spaceChar BYTE ' ', 0
 	snakeHeadChar BYTE '@', 0
 
+    ; Game over message
+    gameOverMsg BYTE 'GAME OVER!', 0
+    gameOverMsgLen EQU $ - gameOverMsg - 1
+
 	; Snake head position
     snakeHeadX WORD 40
     snakeHeadY WORD 12
@@ -59,6 +63,9 @@ EXTRN GetAsyncKeyState: PROC
 		jmp GameLoop
 
 	GameEnd:
+		; Opsie
+		call ShowGameOver
+
 		; Exit
 		mov rcx, 0
 		call ExitProcess
@@ -252,8 +259,17 @@ EXTRN GetAsyncKeyState: PROC
 		jmp MoveEnd
 
 	MoveEnd:
-		; Draw at new position
+		; Check for collision
+		call CheckCollision
+
+		mov rax, gameOver
+		cmp rax, 1
+		je SkipDraw
+
+		; Draw at new position (only if not game over)
 		call DrawSnakeHead
+
+	skipDraw:
 		ret
 	MoveSnake ENDP
 
@@ -321,4 +337,64 @@ EXTRN GetAsyncKeyState: PROC
 		add rsp, 40
 		ret
 	CheckKeyboard ENDP
+	
+	; CheckCollision - Check if snake ate the wall
+	; Desc: Set gameOver = 1 if collision detected
+	CheckCollision PROC
+		; Check left wall (X = 0)
+		movzx rax, snakeHeadX
+		cmp rax, 0
+		je CollisionDetected
+		
+		; Check right wall (X = 79)
+		cmp rax, 79
+		je CollisionDetected
+		
+		; Check top wall (Y = 0)
+		movzx rax, snakeHeadY
+		cmp rax, 0
+		je CollisionDetected
+		
+		; Check bottom wall (Y = 24)
+		cmp rax, 24
+		je CollisionDetected
+		
+		; No collision
+		jmp NoCollision
+
+	CollisionDetected:
+		mov gameOver, 1
+
+	NoCollision:
+		ret
+	CheckCollision ENDP
+
+	; ShowGameOver - Tell user that he lost 
+	ShowGameOver PROC
+		; Position cursor at center
+		mov rcx, 35
+		mov rdx, 12
+		call SetCursorPosition
+		
+		; Write game over message
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, gameOverMsg
+		mov r8, gameOverMsgLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Wait so user can see the message
+		sub rsp, 32
+		mov rcx, 2000 ; 2 seconds
+		call Sleep
+		add rsp, 32
+		
+		ret
+	ShowGameOver ENDP
 END
