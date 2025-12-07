@@ -30,6 +30,11 @@ EXTRN rand: PROC
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
+	; Snake body
+	bodyChar BYTE '+', 0
+	snakeBody WORD 400 DUP(?) ; 200 segments * 2 WORDs (X,Y)
+    snakeDim QWORD 1
+
 	gameOver QWORD 0 ; 0 = fun, 1 = game over
 
 	consoleHandle QWORD ? ; Console output handle
