@@ -917,4 +917,42 @@ EXTRN rand: PROC
 		add score, rax
 		ret
 	UpdateScore ENDP
+
+	; ClearScreen - Clear entire console screen
+	ClearScreen PROC
+		push r12
+		push r13
+		
+		mov r12, 0 ; Y counter
+		
+	ClearScreenRowLoop:
+		cmp r12, 25
+		jge ClearScreenDone
+		
+		mov r13, 0 ; X counter
+		
+	ClearScreenColLoop:
+		cmp r13, 80
+		jge ClearScreenRowDone
+		
+		; Write space character at each position
+		mov rcx, r13
+		mov rdx, r12
+		call SetCursorPosition
+		
+		lea rcx, spaceChar
+		call DrawChar
+		
+		inc r13
+		jmp ClearScreenColLoop
+		
+	ClearScreenRowDone:
+		inc r12
+		jmp ClearScreenRowLoop
+		
+	ClearScreenDone:
+		pop r13
+		pop r12
+		ret
+	ClearScreen ENDP
 END
