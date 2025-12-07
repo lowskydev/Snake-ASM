@@ -1,31 +1,40 @@
+INCLUDELIB ucrt.lib
+
 EXTRN ExitProcess: PROC
 EXTRN GetStdHandle: PROC
 EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
 EXTRN Sleep: PROC
 EXTRN GetAsyncKeyState: PROC
+EXTRN srand: PROC
+EXTRN rand: PROC
 
 .data
-	consoleHandle QWORD ?       ; Console output handle
-    bytesWritten DWORD ?        ; Required by WriteConsoleA
-    STD_OUTPUT_HANDLE EQU -11   ; Param to get output handle
-    
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
-	snakeHeadChar BYTE '@', 0
 
     ; Game over message
     gameOverMsg BYTE 'GAME OVER!', 0
     gameOverMsgLen EQU $ - gameOverMsg - 1
 
 	; Snake head position
+	snakeHeadChar BYTE '@', 0
     snakeHeadX WORD 40
     snakeHeadY WORD 12
+	
+	; Food data
+    foodChar BYTE '*', 0
+    foodX WORD 0
+    foodY WORD 0
 
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
 	gameOver QWORD 0 ; 0 = fun, 1 = game over
+
+	consoleHandle QWORD ? ; Console output handle
+    bytesWritten DWORD ? ; Required by WriteConsoleA
+    STD_OUTPUT_HANDLE EQU -11 ; Param to get output handle
 
 .code 
 	main PROC
