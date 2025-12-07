@@ -504,4 +504,17 @@ EXTRN rand: PROC
 		mov rax, 0
 		ret
 	CheckFoodCollision ENDP
+
+	; InitSnake - Init snake body array with head position
+	InitSnake PROC
+		mov ax, snakeHeadX
+		mov snakeBody[0], ax
+		
+		mov ax, snakeHeadY
+		mov snakeBody[2], ax
+		
+		mov snakeDim, 1
+		
+		ret
+	InitSnake ENDP
 END
