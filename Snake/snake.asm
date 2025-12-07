@@ -63,6 +63,9 @@ EXTRN GetAsyncKeyState: PROC
 		jmp GameLoop
 
 	GameEnd:
+		; Opsie
+		call ShowGameOver
+
 		; Exit
 		mov rcx, 0
 		call ExitProcess
