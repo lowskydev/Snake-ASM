@@ -955,4 +955,54 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	ClearScreen ENDP
+
+	; WriteStringAt - Write string at position
+	; Params: RCX = X position, RDX = Y position, R8 = address of string
+	WriteStringAt PROC
+		push r12
+		push r13
+		push r14
+		
+		; Save params
+		mov r12, rcx
+		mov r13, rdx
+		mov r14, r8
+		
+		; Position cursor
+		mov rcx, r12
+		mov rdx, r13
+		call SetCursorPosition
+		
+		; Calculate string length
+		mov rdi, r14
+		xor rcx, rcx
+		
+	StrLenLoop:
+		mov al, byte ptr [rdi + rcx]
+		test al, al
+		jz StrLenDone
+		inc rcx
+		jmp StrLenLoop
+		
+	StrLenDone:
+		; RCX now has length
+		
+		; Write string
+		sub rsp, 40
+		
+		mov r8, rcx ; Length
+		mov rcx, consoleHandle
+		mov rdx, r14 ; String address
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		pop r14
+		pop r13
+		pop r12
+		ret
+	WriteStringAt ENDP
 END
