@@ -14,6 +14,10 @@ EXTRN GetAsyncKeyState: PROC
     spaceChar BYTE ' ', 0
 	snakeHeadChar BYTE '@', 0
 
+    ; Game over message
+    gameOverMsg BYTE 'GAME OVER!', 0
+    gameOverMsgLen EQU $ - gameOverMsg - 1
+
 	; Snake head position
     snakeHeadX WORD 40
     snakeHeadY WORD 12
@@ -361,4 +365,33 @@ EXTRN GetAsyncKeyState: PROC
 	NoCollision:
 		ret
 	CheckCollision ENDP
+
+	; ShowGameOver - Tell user that he lost 
+	ShowGameOver PROC
+		; Position cursor at center
+		mov rcx, 35
+		mov rdx, 12
+		call SetCursorPosition
+		
+		; Write game over message
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, gameOverMsg
+		mov r8, gameOverMsgLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Wait so user can see the message
+		sub rsp, 32
+		mov rcx, 2000 ; 2 seconds
+		call Sleep
+		add rsp, 32
+		
+		ret
+	ShowGameOver ENDP
 END
