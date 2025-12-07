@@ -437,7 +437,7 @@ EXTRN rand: PROC
 		xor rdx, rdx
 		mov rcx, 23 ; Range: 23 (positions 1-23)
 		div rcx ; rdx = rand() % 23
-		inc rdx ; rdx = 1 to 23
+		inc rdx
 		mov foodY, dx
 		
 		; TODO: check if food is on snake
@@ -445,4 +445,17 @@ EXTRN rand: PROC
 		add rsp, 32
 		ret
 	PlaceFood ENDP
+
+	; DrawFood - Draw food at current position
+	DrawFood PROC
+		; Set cursor to food position
+		movzx rcx, foodX
+		movzx rdx, foodY
+		call SetCursorPosition
+		
+		lea rcx, foodChar
+		call DrawChar
+		
+		ret
+	DrawFood ENDP
 END
