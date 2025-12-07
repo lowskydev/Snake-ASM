@@ -3,6 +3,7 @@ EXTRN GetStdHandle: PROC
 EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
 EXTRN Sleep: PROC
+EXTRN GetAsyncKeyState: PROC
 
 .data
 	consoleHandle QWORD ?       ; Console output handle
@@ -16,6 +17,11 @@ EXTRN Sleep: PROC
 	; Snake head position
     snakeHeadX WORD 40
     snakeHeadY WORD 12
+
+	# Direction (0=Up, 1=Down, 2=Left, 3=Right)
+	direction QWORD 3
+
+	gameOver QWORD 0 ; 0 = fun, 1 = game over
 
 .code 
 	main PROC
