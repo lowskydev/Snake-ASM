@@ -1,31 +1,40 @@
+INCLUDELIB ucrt.lib
+
 EXTRN ExitProcess: PROC
 EXTRN GetStdHandle: PROC
 EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
 EXTRN Sleep: PROC
 EXTRN GetAsyncKeyState: PROC
+EXTRN srand: PROC
+EXTRN rand: PROC
 
 .data
-	consoleHandle QWORD ?       ; Console output handle
-    bytesWritten DWORD ?        ; Required by WriteConsoleA
-    STD_OUTPUT_HANDLE EQU -11   ; Param to get output handle
-    
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
-	snakeHeadChar BYTE '@', 0
 
     ; Game over message
     gameOverMsg BYTE 'GAME OVER!', 0
     gameOverMsgLen EQU $ - gameOverMsg - 1
 
 	; Snake head position
+	snakeHeadChar BYTE '@', 0
     snakeHeadX WORD 40
     snakeHeadY WORD 12
+	
+	; Food data
+    foodChar BYTE '*', 0
+    foodX WORD 0
+    foodY WORD 0
 
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
 	gameOver QWORD 0 ; 0 = fun, 1 = game over
+
+	consoleHandle QWORD ? ; Console output handle
+    bytesWritten DWORD ? ; Required by WriteConsoleA
+    STD_OUTPUT_HANDLE EQU -11 ; Param to get output handle
 
 .code 
 	main PROC
@@ -34,11 +43,18 @@ EXTRN GetAsyncKeyState: PROC
 		call GetStdHandle
 		mov consoleHandle, rax
 		
+		; Init random number genrator
+		call InitRandom
+
 		; Draw walls
 		call DrawWalls
 
 		; Draw Snake Head
 		call DrawSnakeHead
+
+		; Draw initial Food
+		call PlaceFood
+		call DrawFood
 
 		; Main game loop
 	GameLoop:
@@ -52,7 +68,17 @@ EXTRN GetAsyncKeyState: PROC
 		
 		; Move the snake
 		call MoveSnake
-		
+
+		; Check if snake ate food
+		call CheckFoodCollision
+		cmp rax, 1
+		jne NoFoodEaten
+
+		; Food was eaten
+		call PlaceFood
+		call DrawFood
+	
+	NoFoodEaten:
 		; Game speed
 		sub rsp, 32
 		mov rcx, 150 ; Sleep for 150 ms
@@ -397,4 +423,80 @@ EXTRN GetAsyncKeyState: PROC
 		
 		ret
 	ShowGameOver ENDP
+
+	; InitRandom - Init random number generator
+	InitRandom PROC
+		sub rsp, 32 ; Shadow
+		
+		call rand
+		mov rcx, rax ; Use first rand value as seed
+		call srand
+		
+		add rsp, 32
+		ret
+	InitRandom ENDP
+
+	; PlaceFood - Place food at random position
+	PlaceFood PROC
+		sub rsp, 32
+		
+	GenerateNewPosition:
+		; Generate random X (1 to 78)
+		call rand
+		xor rdx, rdx
+		mov rcx, 78 ; Range: 78 (positions 1-78)
+		div rcx ; rdx = rand() % 78
+		inc rdx
+		mov foodX, dx
+		
+		; Generate random Y (1 to 23)
+		call rand
+		xor rdx, rdx
+		mov rcx, 23 ; Range: 23 (positions 1-23)
+		div rcx ; rdx = rand() % 23
+		inc rdx
+		mov foodY, dx
+		
+		; TODO: check if food is on snake
+		
+		add rsp, 32
+		ret
+	PlaceFood ENDP
+
+	; DrawFood - Draw food at current position
+	DrawFood PROC
+		; Set cursor to food position
+		movzx rcx, foodX
+		movzx rdx, foodY
+		call SetCursorPosition
+		
+		lea rcx, foodChar
+		call DrawChar
+		
+		ret
+	DrawFood ENDP
+
+	; CheckFoodCollision - Check if snake head is on food
+	; Returns: RAX = 1 if food eaten, 0 if not
+	CheckFoodCollision PROC
+		; Compare X positions
+		movzx rax, snakeHeadX
+		movzx rbx, foodX
+		cmp rax, rbx
+		jne NotEaten
+		
+		; Compare Y positions
+		movzx rax, snakeHeadY
+		movzx rbx, foodY
+		cmp rax, rbx
+		jne NotEaten
+		
+		; Delicious
+		mov rax, 1
+		ret
+
+	NotEaten:
+		mov rax, 0
+		ret
+	CheckFoodCollision ENDP
 END
