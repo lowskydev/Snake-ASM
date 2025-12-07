@@ -30,6 +30,11 @@ EXTRN rand: PROC
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
 
+	; Snake body
+	bodyChar BYTE '+', 0
+	snakeBody WORD 400 DUP(?) ; 200 segments * 2 WORDs (X,Y)
+    snakeDim QWORD 1
+
 	gameOver QWORD 0 ; 0 = fun, 1 = game over
 
 	consoleHandle QWORD ? ; Console output handle
@@ -48,6 +53,9 @@ EXTRN rand: PROC
 
 		; Draw walls
 		call DrawWalls
+
+		; Init snake body
+		call InitSnake
 
 		; Draw Snake Head
 		call DrawSnakeHead
@@ -75,6 +83,7 @@ EXTRN rand: PROC
 		jne NoFoodEaten
 
 		; Food was eaten
+		call GrowSnake
 		call PlaceFood
 		call DrawFood
 	
@@ -251,8 +260,12 @@ EXTRN rand: PROC
 	; MoveSnake - Move snake one step in current direction
 	; Desc: Updates snakeHeadX and snakeHeadY based on direction
 	MoveSnake PROC
-		; Erase current position
-		call EraseSnakeHead
+		push r12
+		push r13
+
+		; Save old head position
+		mov r12w, snakeHeadX
+		mov r13w, snakeHeadY
 		
 		; Update position based on direction
 		mov rax, direction
@@ -290,12 +303,67 @@ EXTRN rand: PROC
 
 		mov rax, gameOver
 		cmp rax, 1
-		je SkipDraw
+		je SkipBodyUpdate
 
-		; Draw at new position (only if not game over)
+		; Erase the tail
+		mov rax, snakeDim
+		dec rax ; Last index
+		shl rax, 2 ; Multiply by 4 for offset
+		
+		; Get tail position
+		movzx rcx, word ptr [snakeBody + rax] ; Tail X
+		movzx rdx, word ptr [snakeBody + rax + 2] ; Tail Y
+		call SetCursorPosition
+		lea rcx, spaceChar
+		call DrawChar
+		
+		; Shift body segments forward
+		mov rcx, snakeDim
+		dec rcx ; Start at last index
+		
+	ShiftBodyLoop:
+		cmp rcx, 0
+		jle ShiftBodyDone
+		
+		; Calculate offsets
+		mov rax, rcx
+		shl rax, 2 ; Current offset
+		
+		mov rbx, rcx
+		dec rbx
+		shl rbx, 2 ; Previous offset
+		
+		; Copy previous segment to current: body[i] = body[i-1]
+		mov dx, word ptr [snakeBody + rbx] ; Get previous X
+		mov word ptr [snakeBody + rax], dx ; Set current X
+		
+		mov dx, word ptr [snakeBody + rbx + 2] ; Get previous Y
+		mov word ptr [snakeBody + rax + 2], dx ; Set current Y
+		
+		dec rcx
+		jmp ShiftBodyLoop
+
+	ShiftBodyDone:
+		; Update head position
+		mov ax, snakeHeadX
+		mov snakeBody[0], ax
+		mov ax, snakeHeadY
+		mov snakeBody[2], ax
+		
+		; Draw head at new position
 		call DrawSnakeHead
+		
+		; Draw body segments
+		mov rax, snakeDim
+		cmp rax, 1
+		jle SkipBodyUpdate ; No body yet
+		
+		call DrawSnakeBody
 
-	skipDraw:
+	skipBodyUpdate:
+		pop r13
+		pop r12
+
 		ret
 	MoveSnake ENDP
 
@@ -499,4 +567,58 @@ EXTRN rand: PROC
 		mov rax, 0
 		ret
 	CheckFoodCollision ENDP
+
+	; InitSnake - Init snake body array with head position
+	InitSnake PROC
+		mov ax, snakeHeadX
+		mov snakeBody[0], ax
+		
+		mov ax, snakeHeadY
+		mov snakeBody[2], ax
+		
+		mov snakeDim, 1
+		
+		ret
+	InitSnake ENDP
+
+	; DrawSnakeBody - Draw all body segments
+	DrawSnakeBody PROC
+		push r12
+		
+		mov r12, 1 ; Body index (skip head)
+		
+	DrawBodyLoop:
+		; Check if all segments are drawn
+		mov rax, snakeDim
+		cmp r12, rax
+		jge DrawBodyDone
+		
+		; Offset = index * 4 (each segment is 2 WORDs = 4 bytes)
+		mov rax, r12
+		shl rax, 2 ; Multiply by 4
+		
+		; Get X pos: snakeBody[offset]
+		movzx rcx, word ptr [snakeBody + rax]
+		
+		; Get Y pos: snakeBody[offset + 2]
+		movzx rdx, word ptr [snakeBody + rax + 2]
+		
+		; Draw body
+		call SetCursorPosition
+		lea rcx, bodyChar
+		call DrawChar
+		
+		inc r12
+		jmp DrawBodyLoop
+
+	DrawBodyDone:
+		pop r12
+		ret
+	DrawSnakeBody ENDP
+
+	; GrowSnake - Increment snake length
+	GrowSnake PROC
+		inc snakeDim
+		ret
+	GrowSnake ENDP
 END
