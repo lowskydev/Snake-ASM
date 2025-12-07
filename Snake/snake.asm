@@ -252,8 +252,17 @@ EXTRN GetAsyncKeyState: PROC
 		jmp MoveEnd
 
 	MoveEnd:
-		; Draw at new position
+		; Check for collision
+		call CheckCollision
+
+		mov rax, gameOver
+		cmp rax, 1
+		je SkipDraw
+
+		; Draw at new position (only if not game over)
 		call DrawSnakeHead
+
+	skipDraw:
 		ret
 	MoveSnake ENDP
 
