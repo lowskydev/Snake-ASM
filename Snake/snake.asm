@@ -321,4 +321,35 @@ EXTRN GetAsyncKeyState: PROC
 		add rsp, 40
 		ret
 	CheckKeyboard ENDP
+	
+	; CheckCollision - Check if snake ate the wall
+	; Desc: Set gameOver = 1 if collision detected
+	CheckCollision PROC
+		; Check left wall (X = 0)
+		movzx rax, snakeHeadX
+		cmp rax, 0
+		je CollisionDetected
+		
+		; Check right wall (X = 79)
+		cmp rax, 79
+		je CollisionDetected
+		
+		; Check top wall (Y = 0)
+		movzx rax, snakeHeadY
+		cmp rax, 0
+		je CollisionDetected
+		
+		; Check bottom wall (Y = 24)
+		cmp rax, 24
+		je CollisionDetected
+		
+		; No collision
+		jmp NoCollision
+
+	CollisionDetected:
+		mov gameOver, 1
+
+	NoCollision:
+		ret
+	CheckCollision ENDP
 END
