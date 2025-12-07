@@ -517,4 +517,39 @@ EXTRN rand: PROC
 		
 		ret
 	InitSnake ENDP
+
+	; DrawSnakeBody - Draw all body segments
+	DrawSnakeBody PROC
+		push r12
+		
+		mov r12, 1 ; Body index (skip head)
+		
+	DrawBodyLoop:
+		; Check if all segments are drawn
+		mov rax, snakeDim
+		cmp r12, rax
+		jge DrawBodyDone
+		
+		; Offset = index * 4 (each segment is 2 WORDs = 4 bytes)
+		mov rax, r12
+		shl rax, 2 ; Multiply by 4
+		
+		; Get X pos: snakeBody[offset]
+		movzx rcx, word ptr [snakeBody + rax]
+		
+		; Get Y pos: snakeBody[offset + 2]
+		movzx rdx, word ptr [snakeBody + rax + 2]
+		
+		; Draw body
+		call SetCursorPosition
+		lea rcx, bodyChar
+		call DrawChar
+		
+		inc r12
+		jmp DrawBodyLoop
+
+	DrawBodyDone:
+		pop r12
+		ret
+	DrawSnakeBody ENDP
 END
