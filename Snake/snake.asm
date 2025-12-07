@@ -148,5 +148,5 @@ EXTRN Sleep: PROC
 		pop r13
 		pop r12
 		ret
-	DrawWalls
+	DrawWalls ENDP
 END
