@@ -16,6 +16,7 @@ EXTRN rand: PROC
 
     wallChar BYTE '#', 0
     spaceChar BYTE ' ', 0
+	clearSpaces BYTE '                    ', 0  ; used for clearing
 
     ; Game over message
     gameOverMsg BYTE 'GAME OVER!', 0
@@ -480,6 +481,23 @@ EXTRN rand: PROC
 
 	; ShowGameOver - Tell user that he lost 
 	ShowGameOver PROC
+		; Erase the score display next to wall
+		mov rcx, 82
+		mov rdx, 1
+		call SetCursorPosition
+		
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces ; 20 spaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+
 		; Position cursor at center
 		mov rcx, 35
 		mov rdx, 12
