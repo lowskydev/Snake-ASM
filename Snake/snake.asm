@@ -71,6 +71,8 @@ EXTRN rand: PROC
 		call PlaceFood
 		call DrawFood
 
+		call DisplayScore
+
 		; Main game loop
 	GameLoop:
 		; Check if game is over
@@ -83,6 +85,9 @@ EXTRN rand: PROC
 		
 		; Move the snake
 		call MoveSnake
+
+		call UpdateScore
+		call DisplayScore
 
 		; Check if snake ate food
 		call CheckFoodCollision
