@@ -180,4 +180,17 @@ EXTRN GetAsyncKeyState: PROC
 		
 		ret
 	DrawSnakeHead ENDP
+
+	; EraseSnakeHead - Erase Snake Head at its position
+	EraseSnakeHead PROC
+		; Set cursor to snake head position
+		movzx rcx, snakeHeadX
+		movzx rdx, snakeHeadY
+		call SetCursorPosition
+		
+		lea rcx, spaceChar
+		call DrawChar
+		
+		ret
+	EraseSnakeHead ENDP
 END
