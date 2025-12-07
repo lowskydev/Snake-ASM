@@ -1005,4 +1005,101 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	WriteStringAt ENDP
+
+	; DrawMenu - Draw the menu screen
+	DrawMenu PROC
+		call ClearScreen
+		
+		; Draw title
+		mov rcx, 0
+		mov rdx, 2
+		lea r8, titleLine1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 3
+		lea r8, titleLine2
+		call WriteStringAt
+		
+		; Check if first time or next game
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jnz DrawPostGameMenu
+		
+		; Draw initial menu
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, groupTitle
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, member1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 7
+		lea r8, member2
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 8
+		lea r8, member3
+		call WriteStringAt
+		
+		; Draw menu options
+		call DrawMenuOptions
+		jmp DrawMenuEnd
+		
+	DrawPostGameMenu:
+		; Draw scores
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, highScoreText
+		call WriteStringAt
+		
+		; Draw high score number
+		mov rax, highScore
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Draw your score label
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, yourScoreText
+		call WriteStringAt
+		
+		; Draw your score number
+		mov rax, lastScore
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Draw menu options
+		call DrawMenuOptions
+		
+	DrawMenuEnd:
+		; Draw navigation help
+		mov rcx, 0
+		mov rdx, 22
+		lea r8, navHelp
+		call WriteStringAt
+		
+		ret
+	DrawMenu ENDP
 END
