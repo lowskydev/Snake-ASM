@@ -792,4 +792,12 @@ EXTRN rand: PROC
 		
 		ret
 	DisplayScore ENDP
+
+	; UpdateScore - Update score when snake moves
+	UpdateScore PROC
+		; Score = snake length * number of steps taken
+		mov rax, snakeDim
+		add score, rax
+		ret
+	UpdateScore ENDP
 END
