@@ -418,4 +418,31 @@ EXTRN rand: PROC
 		add rsp, 32
 		ret
 	InitRandom ENDP
+
+	; PlaceFood - Place food at random position
+	PlaceFood PROC
+		sub rsp, 32
+		
+	GenerateNewPosition:
+		; Generate random X (1 to 78)
+		call rand
+		xor rdx, rdx
+		mov rcx, 78 ; Range: 78 (positions 1-78)
+		div rcx ; rdx = rand() % 78
+		inc rdx
+		mov foodX, dx
+		
+		; Generate random Y (1 to 23)
+		call rand
+		xor rdx, rdx
+		mov rcx, 23 ; Range: 23 (positions 1-23)
+		div rcx ; rdx = rand() % 23
+		inc rdx ; rdx = 1 to 23
+		mov foodY, dx
+		
+		; TODO: check if food is on snake
+		
+		add rsp, 32
+		ret
+	PlaceFood ENDP
 END
