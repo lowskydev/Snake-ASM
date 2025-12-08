@@ -176,6 +176,16 @@ EXTRN rand: PROC
 		jmp GameLoop
 
 	GameEnd:
+		mov rax, score
+		mov lastScore, rax
+		
+		; Update high score if current score is better
+		mov rbx, highScore
+		cmp rax, rbx
+		jle NoNewHighScore
+		mov highScore, rax ; New high score
+		
+	NoNewHighScore:
 		mov hasPlayedOnce, 1
 		
 		call ShowGameOver
@@ -1123,11 +1133,12 @@ EXTRN rand: PROC
 		; Draw high score number
 		mov rax, highScore
 		call ConvertScoreToString
+		mov r10, rcx
 		
 		sub rsp, 40
-		mov r8, rcx
 		mov rcx, consoleHandle
 		lea rdx, scoreBuffer
+		mov r8, r10
 		lea r9, bytesWritten
 		mov qword ptr [rsp+32], 0
 		call WriteConsoleA
@@ -1142,11 +1153,12 @@ EXTRN rand: PROC
 		; Draw your score number
 		mov rax, lastScore
 		call ConvertScoreToString
+		mov r10, rcx
 		
 		sub rsp, 40
-		mov r8, rcx
 		mov rcx, consoleHandle
 		lea rdx, scoreBuffer
+		mov r8, r10
 		lea r9, bytesWritten
 		mov qword ptr [rsp+32], 0
 		call WriteConsoleA
@@ -1451,19 +1463,8 @@ EXTRN rand: PROC
 		; Reset snake position
 		mov snakeHeadX, 40
 		mov snakeHeadY, 12
-		
-		; Save current score as last score
-		mov rax, score
-		mov lastScore, rax
-		
-		; Update high score if needed
-		mov rbx, highScore
-		cmp rax, rbx
-		jle NoNewHighScore
-		mov highScore, rax
-		
-	NoNewHighScore:
-		; Reset score for new game
+
+		; Reset score
 		mov score, 0
 		
 		; Reset snake
