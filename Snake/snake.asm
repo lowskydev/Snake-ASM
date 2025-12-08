@@ -1571,4 +1571,43 @@ EXTRN GetTickCount: PROC
 		
 		ret
 	InitGame ENDP
+
+	; DisplayLength - Display current snake length
+	DisplayLength PROC
+		mov rcx, 82
+		mov rdx, 2
+		call SetCursorPosition
+		
+		; Write "Length: " label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, lengthLabel
+		mov r8, lengthLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert snake length to string
+		mov rax, snakeDim
+		call ConvertScoreToString
+		
+		; Write the length number
+		sub rsp, 40
+		
+		mov r8, rcx ; Length of string
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer ; Reuse score buffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayLength ENDP
 END
