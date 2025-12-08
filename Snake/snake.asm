@@ -62,8 +62,14 @@ EXTRN GetTickCount: PROC
 	menuSelection QWORD 0 ; Menu selection (0=Play, 1=Instructions, 2=Exit)
 	maxMenuItems QWORD 3 ; Number of menu items
 	hasPlayedOnce QWORD 0 ; 0 = first time, 1 = has played before
+
+	; Score
 	lastScore QWORD 0 ; Store last game score
 	highScore QWORD 0 ; Best score achieved
+
+	; Length label
+    lengthLabel BYTE 'Length: ', 0
+    lengthLabelLen EQU $ - lengthLabel - 1
 
 	; Console title
     consoleTitle BYTE 'Assembly Snake Game', 0
