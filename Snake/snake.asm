@@ -93,6 +93,7 @@ EXTRN GetTickCount: PROC
 	menuSpace BYTE '      ', 0
 	
 	highScoreText BYTE '    High Score: ', 0
+	highScoreTextInGame BYTE 'Best: ', 0
 	yourScoreText BYTE '    Your Score: ', 0
 	
 	navHelp BYTE '    Use arrows and ENTER to select', 0
@@ -162,6 +163,7 @@ EXTRN GetTickCount: PROC
 		call PlaceFood
 		call DrawFood
 		call DisplayScore
+		call DisplayHighScore
 
 		; Game loop
 	GameLoop:
@@ -195,6 +197,7 @@ EXTRN GetTickCount: PROC
 
 		call UpdateScore
 		call DisplayScore
+		call DisplayHighScore
 		call DisplayLength
 
 		; Check if snake ate food
@@ -1649,4 +1652,43 @@ EXTRN GetTickCount: PROC
 		
 		ret
 	DisplayLength ENDP
+
+	; DisplayHighScore - Display high score at top
+	DisplayHighScore PROC
+		mov rcx, 82
+		mov rdx, 0
+		call SetCursorPosition
+		
+		; Write "High Score: " label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, highScoreTextInGame
+		mov r8, 6
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert high score to string
+		mov rax, highScore
+		call ConvertScoreToString
+		
+		; Write the high score number
+		sub rsp, 40
+		
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayHighScore ENDP
 END
