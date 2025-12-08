@@ -17,19 +17,26 @@ Requires Visual Studio 2022 with MASM for x64.
 
 ## Architecture Overview
 
-### Game States
+<h3 align="center">Game States</h3>
 
-<img src="Assets/13-Game-State-Machine.png" width="300">
 
-### Main Program Flow
+<p align="center">
+  <img src="Assets/13-Game-State-Machine.png" width="300">
+</p>
 
-<img src="Assets/1-Main-Program-Flow.png" width="300">
+<h3 align="center">Main Program Flow</h3>
 
-### Game Loop
+<p align="center">
+  <img src="Assets/1-Main-Program-Flow.png" width="300">
+</p>
 
-Each frame: check input (3x for responsiveness) → move snake → check collisions → update display.
+<h3 align="center">Game Loop</h3>
 
-<img src="Assets/11-Detailed-Game-Loop.png" width="300">
+<p align="center">Each frame: check input (3x for responsiveness) → move snake → check collisions → update display.</p>
+
+<p align="center">
+  <img src="Assets/11-Detailed-Game-Loop.png" width="300">
+</p>
 
 ### Core Systems
 
