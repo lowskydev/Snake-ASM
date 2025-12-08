@@ -70,6 +70,7 @@ EXTRN GetTickCount: PROC
 	; Length label
     lengthLabel BYTE 'Length: ', 0
     lengthLabelLen EQU $ - lengthLabel - 1
+    lastLength QWORD 0
 
 	; Console title
     consoleTitle BYTE 'Assembly Snake Game', 0
@@ -194,6 +195,7 @@ EXTRN GetTickCount: PROC
 
 		call UpdateScore
 		call DisplayScore
+		call DisplayLength
 
 		; Check if snake ate food
 		call CheckFoodCollision
@@ -220,6 +222,10 @@ EXTRN GetTickCount: PROC
 	GameEnd:
 		mov rax, score
 		mov lastScore, rax
+
+		; Save last length
+		mov rax, snakeDim
+		mov lastLength, rax
 		
 		; Update high score if current score is better
 		mov rbx, highScore
@@ -625,6 +631,20 @@ EXTRN GetTickCount: PROC
 	; ShowGameOver - Tell user that he lost 
 	ShowGameOver PROC
 		push r12
+
+		; Erase the length display
+		mov rcx, 82
+		mov rdx, 2
+		call SetCursorPosition
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
 
 		; Erase the score display next to wall
 		mov rcx, 82
