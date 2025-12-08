@@ -536,7 +536,7 @@ EXTRN GetTickCount: PROC
 		ret
 	MoveSnake ENDP
 
-	; CheckKeyboard - Check arrow key press and update direction
+	; CheckKeyboard - Check arrow key press and update NEXT direction
 	CheckKeyboard PROC
 		; Arrow key codes: Up=26h, Down=28h, Left=25h, Right=27h
 		
@@ -548,11 +548,11 @@ EXTRN GetTickCount: PROC
 		test ax, 8000h ; Check if key is pressed (high bit set)
 		jz CheckDown
 
-		; Prevent going down if going up
-		mov rax, direction
+		; Prevent going down if CURRENTLY going up
+		mov rax, direction ; Check CURRENT direction
 		cmp rax, 1 ; Don't allow up if going down
 		je CheckDown
-		mov direction, 0 ; Set direction to Up
+		mov nextDirection, 0 ; Set NEXT direction to Up
 		jmp CheckKeyboardEnd
 
 	CheckDown:
@@ -562,11 +562,11 @@ EXTRN GetTickCount: PROC
 		test ax, 8000h
 		jz CheckLeft
 
-		; Prevent going up if going down
-		mov rax, direction
+		; Prevent going up if CURRENTLY going down
+		mov rax, direction ; Check CURRENT direction
 		cmp rax, 0 ; Don't allow down if going up
 		je CheckLeft
-		mov direction, 1 ; Set direction to Down
+		mov nextDirection, 1 ; Set NEXT direction to Down
 		jmp CheckKeyboardEnd
 
 	CheckLeft:
@@ -576,11 +576,11 @@ EXTRN GetTickCount: PROC
 		test ax, 8000h
 		jz CheckRight
 
-		; Prevent going right if going left
-		mov rax, direction
+		; Prevent going right if CURRENTLY going left
+		mov rax, direction ; Check CURRENT direction
 		cmp rax, 3 ; Don't allow left if going right
 		je CheckRight
-		mov direction, 2 ; Set direction to Left
+		mov nextDirection, 2 ; Set NEXT direction to Left
 		jmp CheckKeyboardEnd
 
 	CheckRight:
@@ -590,11 +590,11 @@ EXTRN GetTickCount: PROC
 		test ax, 8000h
 		jz CheckKeyboardEnd
 
-		; Prevent going left if going right
-		mov rax, direction
+		; Prevent going left if CURRENTLY going right
+		mov rax, direction ; Check CURRENT direction
 		cmp rax, 2 ; Don't allow right if going left
 		je CheckKeyboardEnd
-		mov direction, 3 ; Set direction to Right
+		mov nextDirection, 3 ; Set NEXT direction to Right
 
 	CheckKeyboardEnd:
 		add rsp, 40
