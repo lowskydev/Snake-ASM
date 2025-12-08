@@ -1212,4 +1212,23 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	DrawMenuOptions ENDP
+
+	; WaitForKeyRelease - Wait until specific key is released
+	; Params: RCX = key code
+	WaitForKeyRelease PROC
+		push r12
+		mov r12, rcx ; Save key code
+		
+	WaitReleaseLoop:
+		sub rsp, 32
+		mov rcx, r12 ; Use saved key code
+		call GetAsyncKeyState
+		add rsp, 32
+		
+		test ax, 8000h ; Check if still pressed
+		jnz WaitReleaseLoop ; If yes keep waiting
+		
+		pop r12
+		ret
+	WaitForKeyRelease ENDP
 END
