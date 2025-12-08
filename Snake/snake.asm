@@ -62,8 +62,15 @@ EXTRN GetTickCount: PROC
 	menuSelection QWORD 0 ; Menu selection (0=Play, 1=Instructions, 2=Exit)
 	maxMenuItems QWORD 3 ; Number of menu items
 	hasPlayedOnce QWORD 0 ; 0 = first time, 1 = has played before
+
+	; Score
 	lastScore QWORD 0 ; Store last game score
 	highScore QWORD 0 ; Best score achieved
+
+	; Length label
+    lengthLabel BYTE 'Length: ', 0
+    lengthLabelLen EQU $ - lengthLabel - 1
+    lastLength QWORD 0
 
 	; Console title
     consoleTitle BYTE 'Assembly Snake Game', 0
@@ -86,6 +93,7 @@ EXTRN GetTickCount: PROC
 	menuSpace BYTE '      ', 0
 	
 	highScoreText BYTE '    High Score: ', 0
+	highScoreTextInGame BYTE 'Best: ', 0
 	yourScoreText BYTE '    Your Score: ', 0
 	
 	navHelp BYTE '    Use arrows and ENTER to select', 0
@@ -155,6 +163,7 @@ EXTRN GetTickCount: PROC
 		call PlaceFood
 		call DrawFood
 		call DisplayScore
+		call DisplayHighScore
 
 		; Game loop
 	GameLoop:
@@ -188,6 +197,8 @@ EXTRN GetTickCount: PROC
 
 		call UpdateScore
 		call DisplayScore
+		call DisplayHighScore
+		call DisplayLength
 
 		; Check if snake ate food
 		call CheckFoodCollision
@@ -214,6 +225,10 @@ EXTRN GetTickCount: PROC
 	GameEnd:
 		mov rax, score
 		mov lastScore, rax
+
+		; Save last length
+		mov rbx, snakeDim
+		mov lastLength, rbx
 		
 		; Update high score if current score is better
 		mov rbx, highScore
@@ -620,6 +635,34 @@ EXTRN GetTickCount: PROC
 	ShowGameOver PROC
 		push r12
 
+		; Erase the high score display
+		mov rcx, 82
+		mov rdx, 0
+		call SetCursorPosition
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+
+		; Erase the length display
+		mov rcx, 82
+		mov rdx, 2
+		call SetCursorPosition
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+
 		; Erase the score display next to wall
 		mov rcx, 82
 		mov rdx, 1
@@ -714,6 +757,25 @@ EXTRN GetTickCount: PROC
 		
 		call WriteConsoleA
 		
+		add rsp, 40
+
+		; Draw final length label
+		mov rcx, 32
+		mov rdx, 15
+		lea r8, lengthLabel
+		call WriteStringAt
+		
+		; Draw final length number
+		mov rax, lastLength
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
 		add rsp, 40
 		
 		; Wait so user can see the message
@@ -1565,4 +1627,82 @@ EXTRN GetTickCount: PROC
 		
 		ret
 	InitGame ENDP
+
+	; DisplayLength - Display current snake length
+	DisplayLength PROC
+		mov rcx, 82
+		mov rdx, 2
+		call SetCursorPosition
+		
+		; Write "Length: " label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, lengthLabel
+		mov r8, lengthLabelLen
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert snake length to string
+		mov rax, snakeDim
+		call ConvertScoreToString
+		
+		; Write the length number
+		sub rsp, 40
+		
+		mov r8, rcx ; Length of string
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer ; Reuse score buffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayLength ENDP
+
+	; DisplayHighScore - Display high score at top
+	DisplayHighScore PROC
+		mov rcx, 82
+		mov rdx, 0
+		call SetCursorPosition
+		
+		; Write "High Score: " label
+		sub rsp, 40
+		
+		mov rcx, consoleHandle
+		lea rdx, highScoreTextInGame
+		mov r8, 6
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		; Convert high score to string
+		mov rax, highScore
+		call ConvertScoreToString
+		
+		; Write the high score number
+		sub rsp, 40
+		
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		ret
+	DisplayHighScore ENDP
 END
