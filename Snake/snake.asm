@@ -100,22 +100,47 @@ EXTRN rand: PROC
 		; Init random number genrator
 		call InitRandom
 
-		; Draw walls
+	MainMenuLoop:
+		; Draw menu
+		call DrawMenu
+
+	MenuLoop:
+		; Handle menu input
+		call MenuInput
+		test rax, rax ; Check if Enter was pressed
+		jz MenuLoop
+		
+		; Check which option
+		mov rax, menuSelection
+		
+		cmp rax, 0 ; PLAY option
+		je StartGame
+		
+		cmp rax, 1; HOW TO PLAY option
+		je ShowInst
+		
+		cmp rax, 2 ; EXIT option
+		je ExitProgram
+		
+		jmp MenuLoop ; You never know
+		
+	ShowInst:
+		call ShowInstructions
+		jmp MainMenuLoop ; Return to menu
+		
+	StartGame:
+		; Initialize game
+		call InitGame
+
+	 ; Clear screen and draw game
+		call ClearScreen
 		call DrawWalls
-
-		; Init snake body
-		call InitSnake
-
-		; Draw Snake Head
 		call DrawSnakeHead
-
-		; Draw initial Food
 		call PlaceFood
 		call DrawFood
-
 		call DisplayScore
 
-		; Main game loop
+		; Game loop
 	GameLoop:
 		; Check if game is over
 		mov rax, gameOver
@@ -125,7 +150,6 @@ EXTRN rand: PROC
 		; Check keyboard input
 		call CheckKeyboard
 		
-		; Move the snake
 		call MoveSnake
 
 		call UpdateScore
@@ -136,7 +160,7 @@ EXTRN rand: PROC
 		cmp rax, 1
 		jne NoFoodEaten
 
-		; Food was eaten
+		; Delicious 
 		call GrowSnake
 		call PlaceFood
 		call DrawFood
@@ -152,10 +176,17 @@ EXTRN rand: PROC
 		jmp GameLoop
 
 	GameEnd:
-		; Opsie
+		mov hasPlayedOnce, 1
+		
 		call ShowGameOver
-
-		; Exit
+		
+		; Reset menu selection to 0 (PLAY AGAIN)
+		mov menuSelection, 0
+		
+		; Return to menu
+		jmp MainMenuLoop
+		
+	ExitProgram:
 		mov rcx, 0
 		call ExitProcess
 	main ENDP
