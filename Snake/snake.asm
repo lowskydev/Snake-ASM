@@ -572,6 +572,8 @@ EXTRN rand: PROC
 
 	; ShowGameOver - Tell user that he lost 
 	ShowGameOver PROC
+		push r12
+
 		; Erase the score display next to wall
 		mov rcx, 82
 		mov rdx, 1
@@ -589,6 +591,33 @@ EXTRN rand: PROC
 		
 		add rsp, 40
 
+		; Clear the game over message area first
+		; Clear a rectangle around
+		; Clear rows 11-15, colum
+		mov r12, 11 ; Start Y
+		
+	ClearMessageArea:
+		cmp r12, 16
+		jge ClearDone
+		
+		mov rcx, 30
+		mov rdx, r12
+		call SetCursorPosition
+		
+		; Write 20 spaces
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		inc r12
+		jmp ClearMessageArea
+		
+	ClearDone:
 		; Position cursor at center
 		mov rcx, 35
 		mov rdx, 12
@@ -647,6 +676,8 @@ EXTRN rand: PROC
 		call Sleep
 		add rsp, 32
 		
+		pop r12
+
 		ret
 	ShowGameOver ENDP
 
