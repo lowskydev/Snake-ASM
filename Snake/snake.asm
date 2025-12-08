@@ -18,7 +18,7 @@ EXTRN GetTickCount: PROC
     bytesWritten DWORD ? ; Required by WriteConsoleA
     STD_OUTPUT_HANDLE EQU -11 ; Param to get output handle
 
-    wallChar BYTE '#', 0
+    wallChar BYTE 219, 0
     spaceChar BYTE ' ', 0
 	clearSpaces BYTE '                    ', 0  ; used for clearing
 
