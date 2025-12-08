@@ -80,10 +80,8 @@ EXTRN GetTickCount: PROC
 	titleLine1 BYTE '         SNAKE GAME', 0
 	titleLine2 BYTE '    =====================', 0
 	
-	groupTitle BYTE '    Group Members:', 0
-	member1 BYTE '    - Wiktor Szydlowski (75135)', 0
-	member2 BYTE '    - Valerii Matviiv (75176)', 0
-	member3 BYTE '    - Markiian Voloshyn (75528)', 0
+	authorTitle BYTE '    Project by:', 0
+	author BYTE '    - Wiktor Szydlowski', 0
 	
 	menuPlay BYTE '   PLAY', 0
 	menuPlayAgain BYTE '   PLAY AGAIN', 0
@@ -1250,22 +1248,12 @@ EXTRN GetTickCount: PROC
 		; Draw initial menu
 		mov rcx, 0
 		mov rdx, 5
-		lea r8, groupTitle
+		lea r8, authorTitle
 		call WriteStringAt
 		
 		mov rcx, 0
 		mov rdx, 6
-		lea r8, member1
-		call WriteStringAt
-		
-		mov rcx, 0
-		mov rdx, 7
-		lea r8, member2
-		call WriteStringAt
-		
-		mov rcx, 0
-		mov rdx, 8
-		lea r8, member3
+		lea r8, author
 		call WriteStringAt
 		
 		; Draw menu options
