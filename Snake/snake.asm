@@ -224,8 +224,8 @@ EXTRN GetTickCount: PROC
 		mov lastScore, rax
 
 		; Save last length
-		mov rax, snakeDim
-		mov lastLength, rax
+		mov rbx, snakeDim
+		mov lastLength, rbx
 		
 		; Update high score if current score is better
 		mov rbx, highScore
@@ -740,6 +740,25 @@ EXTRN GetTickCount: PROC
 		
 		call WriteConsoleA
 		
+		add rsp, 40
+
+		; Draw final length label
+		mov rcx, 32
+		mov rdx, 15
+		lea r8, lengthLabel
+		call WriteStringAt
+		
+		; Draw final length number
+		mov rax, lastLength
+		call ConvertScoreToString
+		
+		sub rsp, 40
+		mov r8, rcx
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
 		add rsp, 40
 		
 		; Wait so user can see the message
