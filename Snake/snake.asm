@@ -22,6 +22,10 @@ EXTRN GetTickCount: PROC
     spaceChar BYTE ' ', 0
 	clearSpaces BYTE '                    ', 0  ; used for clearing
 
+	startSpeed QWORD 100 ; Starting speed
+	gameSpeed QWORD 100 ; Speed during game
+    minSpeed QWORD 20 ; minimum speed
+
     ; Game over message
     gameOverMsg BYTE 'GAME OVER!', 0
     gameOverMsgLen EQU $ - gameOverMsg - 1
@@ -149,9 +153,27 @@ EXTRN GetTickCount: PROC
 		cmp rax, 1
 		je GameEnd
 		
+		; Check keyboard multiple times (more responsive)
+		mov r12, 3
+
+	InputCheckLoop:
 		; Check keyboard input
 		call CheckKeyboard
 		
+		; Sleep for 1/3 of the game speed
+		sub rsp, 32
+		mov rcx, gameSpeed
+		mov rax, rcx
+		xor rdx, rdx ; Clear rdx (needed for division)
+		mov rbx, 3
+		div rbx 
+		mov rcx, rax
+		call Sleep
+		add rsp, 32
+		
+		dec r12
+		jnz InputCheckLoop
+
 		call MoveSnake
 
 		call UpdateScore
@@ -163,17 +185,19 @@ EXTRN GetTickCount: PROC
 		jne NoFoodEaten
 
 		; Delicious 
+		mov rax, gameSpeed
+		sub rax, 2
+		mov rbx, minSpeed
+		cmp rax, rbx
+		jl DontSpeedUp
+		mov gameSpeed, rax
+
+	DontSpeedUp::
 		call GrowSnake
 		call PlaceFood
 		call DrawFood
 	
 	NoFoodEaten:
-		; Game speed
-		sub rsp, 32
-		mov rcx, 150 ; Sleep for 150 ms
-		call Sleep
-		add rsp, 32
-		
 		; Continue loop
 		jmp GameLoop
 
@@ -1470,6 +1494,10 @@ EXTRN GetTickCount: PROC
 		; Reset snake position
 		mov snakeHeadX, 40
 		mov snakeHeadY, 12
+
+		; Reset speed
+		mov rax, startSpeed
+		mov gameSpeed, rax
 
 		; Reset score
 		mov score, 0
