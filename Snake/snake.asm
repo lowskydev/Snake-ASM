@@ -4,6 +4,7 @@ EXTRN ExitProcess: PROC
 EXTRN GetStdHandle: PROC
 EXTRN WriteConsoleA: PROC
 EXTRN SetConsoleCursorPosition: PROC
+EXTRN SetConsoleTitleA: PROC
 EXTRN Sleep: PROC
 EXTRN GetAsyncKeyState: PROC
 EXTRN SetConsoleCursorInfo: PROC
@@ -63,6 +64,9 @@ EXTRN GetTickCount: PROC
 	hasPlayedOnce QWORD 0 ; 0 = first time, 1 = has played before
 	lastScore QWORD 0 ; Store last game score
 	highScore QWORD 0 ; Best score achieved
+
+	; Console title
+    consoleTitle BYTE 'Assembly Snake Game', 0
 	
 	; Menu strings
 	titleLine1 BYTE '         SNAKE GAME', 0
@@ -99,6 +103,12 @@ EXTRN GetTickCount: PROC
 		mov rcx, STD_OUTPUT_HANDLE
 		call GetStdHandle
 		mov consoleHandle, rax
+
+		; Set console title
+		sub rsp, 32
+		lea rcx, consoleTitle
+		call SetConsoleTitleA
+		add rsp, 32
 
 		; Hide the cursor
 		call HideCursor
