@@ -19,40 +19,40 @@ Requires Visual Studio 2022 with MASM for x64.
 
 ### Game States
 
-![Game State Machine](Assets/13_game_state_machine.png)
+![Game State Machine](Assets/13-Game-State-Machine.png)
 
 ### Main Program Flow
 
-![Main Program Flow](Assets/01_main_program_flow.png)
+![Main Program Flow](Assets/1-Main-Program-Flow.png)
 
 ### Game Loop
 
 Each frame: check input (3x for responsiveness) → move snake → check collisions → update display.
 
-![Game Loop](Assets/11_detailed_game_loop.png)
+![Game Loop](Assets/11-Detailed-Game-Loop.png)
 
 ### Core Systems
 
 | System | Description | Diagram |
 |--------|-------------|---------|
-| Movement | Snake moves by shifting body segments through an array | [View](Assets/03_snake_movement.png) |
-| Body Shifting | Array-based segment management | [View](Assets/15_body_segment_shifting.png) |
-| Collisions | Wall, self, and food collision detection | [View](Assets/04_collision_detection.png) |
-| Input | Arrow keys with 180° turn prevention | [View](Assets/05_keyboard_input.png) |
-| Food | Random spawn avoiding snake body | [View](Assets/06_food_system.png) |
-| Menu | Adapts based on play history | [View](Assets/02_menu_system.png) |
+| Movement | Snake moves by shifting body segments through an array | [View](Assets/3-Snake-Movement.png) |
+| Body Shifting | Array-based segment management | [View](Assets/15-Body-Segment-Shifting.png) |
+| Collisions | Wall, self, and food collision detection | [View](Assets/4-Collision-Detection-System.png) |
+| Input | Arrow keys with 180° turn prevention | [View](Assets/5-Keyboard-Input.png) |
+| Food | Random spawn avoiding snake body | [View](Assets/6-Food-System.png) |
+| Menu | Adapts based on play history | [View](Assets/2-Menu-System.png) |
 
 ### Technical Assets
 
 | Diagram | Description |
 |---------|-------------|
-| [Data Structures](Assets/12_data_structures.png) | Memory layout and variables |
-| [Call Hierarchy](Assets/14_procedure_call_hierarchy.png) | Procedure dependencies |
-| [Drawing System](Assets/09_drawing_system.png) | Console rendering |
-| [Score System](Assets/07_score_display_system.png) | Score calculation and display |
-| [Initialization](Assets/08_initialization_system.png) | Game state reset |
-| [Windows API](Assets/16_windows_api_integration.png) | External API usage |
-| [Game Over](Assets/10_gameover_instructions.png) | End screens |
+| [Data Structures](Assets/12-Data-Structures-And-Memory-Layout.png) | Memory layout and variables |
+| [Call Hierarchy](Assets/14-Call-Hierarchy.png) | Procedure dependencies |
+| [Drawing System](Assets/9-Drawing-System.png) | Console rendering |
+| [Score System](Assets/7-Score-And-Display-System.png) | Score calculation and display |
+| [Initialization](Assets/8-Initialization-System.png) | Game state reset |
+| [Windows API](Assets/16-Windows-API-Integration.png) | External API usage |
+| [Game Over](Assets/10-Game-Over-And-Instructions.png) | End screens |
 
 ## Technical Details
 
@@ -60,9 +60,3 @@ Each frame: check input (3x for responsiveness) → move snake → check collisi
 - **Language:** x64 Assembly (MASM)
 - **Rendering:** Windows Console API
 - **RNG:** C runtime (`rand`, `srand`)
-
-## Authors
-
-- Wiktor Szydlowski (75135)
-- Valerii Matviiv (75176)
-- Markiian Voloshyn (75528)
