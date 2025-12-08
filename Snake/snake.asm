@@ -733,11 +733,15 @@ EXTRN GetTickCount: PROC
 
 	; PlaceFood - Place food at random position
 	PlaceFood PROC
-		sub rsp, 32
-		
+		push r12
+		push r13
+	
 	GenerateNewPosition:
 		; Generate random X (1 to 78)
+		sub rsp, 32
 		call rand
+		add rsp, 32
+
 		xor rdx, rdx
 		mov rcx, 78 ; Range: 78 (positions 1-78)
 		div rcx ; rdx = rand() % 78
@@ -745,16 +749,53 @@ EXTRN GetTickCount: PROC
 		mov foodX, dx
 		
 		; Generate random Y (1 to 23)
+		sub rsp, 32
 		call rand
+		add rsp, 32
+
 		xor rdx, rdx
 		mov rcx, 23 ; Range: 23 (positions 1-23)
 		div rcx ; rdx = rand() % 23
 		inc rdx
 		mov foodY, dx
 		
-		; TODO: check if food is on snake
+		 ; Check if food position is on the snake body
+		movzx r8, foodX
+		movzx r9, foodY
 		
-		add rsp, 32
+		; Loop through all snake segments
+		xor r12, r12 ; Segment index
+		
+	CheckSnakeSegments:
+		mov rax, snakeDim
+		cmp r12, rax
+		jge FoodPositionOK ; Checked all segments
+		
+		; Calculate offset: index * 4
+		mov rax, r12
+		shl rax, 2
+		
+		; Get segment position
+		movzx rcx, word ptr [snakeBody + rax] ; Segment X
+		movzx rdx, word ptr [snakeBody + rax + 2] ; Segment Y
+		
+		; Compare with food position
+		cmp r8, rcx
+		jne NotThisSegment
+		cmp r9, rdx
+		jne NotThisSegment
+		
+		; Collision! Generate new position
+		jmp GenerateNewPosition
+		
+	NotThisSegment:
+		inc r12
+		jmp CheckSnakeSegments
+		
+	FoodPositionOK:
+		pop r13
+		pop r12
+		ret
 		ret
 	PlaceFood ENDP
 
