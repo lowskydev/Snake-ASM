@@ -1201,7 +1201,7 @@ EXTRN GetTickCount: PROC
 	DrawMenuEnd:
 		; Draw navigation help
 		mov rcx, 0
-		mov rdx, 22
+		mov rdx, 15
 		lea r8, navHelp
 		call WriteStringAt
 		
