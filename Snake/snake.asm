@@ -51,6 +51,42 @@ EXTRN rand: PROC
 	snakeBody WORD 400 DUP(?) ; 200 segments * 2 WORDs (X,Y)
     snakeDim QWORD 1
 
+	; Menu data
+	menuSelection QWORD 0 ; Menu selection (0=Play, 1=Instructions, 2=Exit)
+	maxMenuItems QWORD 3 ; Number of menu items
+	hasPlayedOnce QWORD 0 ; 0 = first time, 1 = has played before
+	lastScore QWORD 0 ; Store last game score
+	highScore QWORD 0 ; Best score achieved
+	
+	; Menu strings
+	titleLine1 BYTE '         SNAKE GAME', 0
+	titleLine2 BYTE '    =====================', 0
+	
+	groupTitle BYTE '    Group Members:', 0
+	member1 BYTE '    - Wiktor Szydlowski (75135)', 0
+	member2 BYTE '    - Valerii Matviiv (75176)', 0
+	member3 BYTE '    - Markiian Voloshyn (75528)', 0
+	
+	menuPlay BYTE '   PLAY', 0
+	menuPlayAgain BYTE '   PLAY AGAIN', 0
+	menuInstructions BYTE '   HOW TO PLAY', 0
+	menuExit BYTE '   EXIT', 0
+	
+	menuArrow BYTE '    > ', 0
+	menuSpace BYTE '      ', 0
+	
+	highScoreText BYTE '    High Score: ', 0
+	yourScoreText BYTE '    Your Score: ', 0
+	
+	navHelp BYTE '    Use arrows and ENTER to select', 0
+	
+	; Instructions text
+	instTitle BYTE '         HOW TO PLAY', 0
+	instLine1 BYTE '    - Use arrow keys to move', 0
+	instLine2 BYTE '    - Eat food (*) to grow', 0
+	instLine3 BYTE '    - Avoid walls and yourself', 0
+	instLine4 BYTE '    - Press any key to return', 0
+
 .code 
 	main PROC
 		; Get console output handle
@@ -64,22 +100,47 @@ EXTRN rand: PROC
 		; Init random number genrator
 		call InitRandom
 
-		; Draw walls
+	MainMenuLoop:
+		; Draw menu
+		call DrawMenu
+
+	MenuLoop:
+		; Handle menu input
+		call MenuInput
+		test rax, rax ; Check if Enter was pressed
+		jz MenuLoop
+		
+		; Check which option
+		mov rax, menuSelection
+		
+		cmp rax, 0 ; PLAY option
+		je StartGame
+		
+		cmp rax, 1; HOW TO PLAY option
+		je ShowInst
+		
+		cmp rax, 2 ; EXIT option
+		je ExitProgram
+		
+		jmp MenuLoop ; You never know
+		
+	ShowInst:
+		call ShowInstructions
+		jmp MainMenuLoop ; Return to menu
+		
+	StartGame:
+		; Initialize game
+		call InitGame
+
+	 ; Clear screen and draw game
+		call ClearScreen
 		call DrawWalls
-
-		; Init snake body
-		call InitSnake
-
-		; Draw Snake Head
 		call DrawSnakeHead
-
-		; Draw initial Food
 		call PlaceFood
 		call DrawFood
-
 		call DisplayScore
 
-		; Main game loop
+		; Game loop
 	GameLoop:
 		; Check if game is over
 		mov rax, gameOver
@@ -89,7 +150,6 @@ EXTRN rand: PROC
 		; Check keyboard input
 		call CheckKeyboard
 		
-		; Move the snake
 		call MoveSnake
 
 		call UpdateScore
@@ -100,7 +160,7 @@ EXTRN rand: PROC
 		cmp rax, 1
 		jne NoFoodEaten
 
-		; Food was eaten
+		; Delicious 
 		call GrowSnake
 		call PlaceFood
 		call DrawFood
@@ -116,10 +176,27 @@ EXTRN rand: PROC
 		jmp GameLoop
 
 	GameEnd:
-		; Opsie
+		mov rax, score
+		mov lastScore, rax
+		
+		; Update high score if current score is better
+		mov rbx, highScore
+		cmp rax, rbx
+		jle NoNewHighScore
+		mov highScore, rax ; New high score
+		
+	NoNewHighScore:
+		mov hasPlayedOnce, 1
+		
 		call ShowGameOver
-
-		; Exit
+		
+		; Reset menu selection to 0 (PLAY AGAIN)
+		mov menuSelection, 0
+		
+		; Return to menu
+		jmp MainMenuLoop
+		
+	ExitProgram:
 		mov rcx, 0
 		call ExitProcess
 	main ENDP
@@ -505,6 +582,8 @@ EXTRN rand: PROC
 
 	; ShowGameOver - Tell user that he lost 
 	ShowGameOver PROC
+		push r12
+
 		; Erase the score display next to wall
 		mov rcx, 82
 		mov rdx, 1
@@ -522,6 +601,33 @@ EXTRN rand: PROC
 		
 		add rsp, 40
 
+		; Clear the game over message area first
+		; Clear a rectangle around
+		; Clear rows 11-15, colum
+		mov r12, 11 ; Start Y
+		
+	ClearMessageArea:
+		cmp r12, 16
+		jge ClearDone
+		
+		mov rcx, 30
+		mov rdx, r12
+		call SetCursorPosition
+		
+		; Write 20 spaces
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		inc r12
+		jmp ClearMessageArea
+		
+	ClearDone:
 		; Position cursor at center
 		mov rcx, 35
 		mov rdx, 12
@@ -580,6 +686,8 @@ EXTRN rand: PROC
 		call Sleep
 		add rsp, 32
 		
+		pop r12
+
 		ret
 	ShowGameOver ENDP
 
@@ -763,12 +871,15 @@ EXTRN rand: PROC
 
 	; ConvertScoreToString - Convert score to string
 	; Input: RAX = score
-	; Output: scoreBuffer containg string
+	; Output: scoreBuffer containing string
 	; Returns: RCX = string length
 	ConvertScoreToString PROC
 		push rbx
 		push rdi
 		push r12
+		push r13
+		
+		mov r13, rax ; SAVE the score value from RAX parameter
 		
 		; Clear the buffer
 		mov rcx, 20
@@ -777,8 +888,7 @@ EXTRN rand: PROC
 		rep stosb
 		
 		; When score = 0
-		mov rax, score
-		test rax, rax
+		test r13, r13  ; Use saved value not global score
 		jnz NotZero
 		
 		lea rdi, scoreBuffer
@@ -792,7 +902,7 @@ EXTRN rand: PROC
 		mov rbx, 10 ; Divisor
 		xor r12, r12 ; Digit counter
 		
-		mov rax, score
+		mov rax, r13  ; Use saved value not global score
 
 	ConvertLoop:
 		xor rdx, rdx
@@ -828,6 +938,7 @@ EXTRN rand: PROC
 		jmp ReverseLoop
 
 	ConvertDone:
+		pop r13
 		pop r12
 		pop rdi
 		pop rbx
@@ -881,4 +992,487 @@ EXTRN rand: PROC
 		add score, rax
 		ret
 	UpdateScore ENDP
+
+	; ClearScreen - Clear entire console screen
+	ClearScreen PROC
+		push r12
+		push r13
+		
+		mov r12, 0 ; Y counter
+		
+	ClearScreenRowLoop:
+		cmp r12, 25
+		jge ClearScreenDone
+		
+		mov r13, 0 ; X counter
+		
+	ClearScreenColLoop:
+		cmp r13, 80
+		jge ClearScreenRowDone
+		
+		; Write space character at each position
+		mov rcx, r13
+		mov rdx, r12
+		call SetCursorPosition
+		
+		lea rcx, spaceChar
+		call DrawChar
+		
+		inc r13
+		jmp ClearScreenColLoop
+		
+	ClearScreenRowDone:
+		inc r12
+		jmp ClearScreenRowLoop
+		
+	ClearScreenDone:
+		pop r13
+		pop r12
+		ret
+	ClearScreen ENDP
+
+	; WriteStringAt - Write string at position
+	; Params: RCX = X position, RDX = Y position, R8 = address of string
+	WriteStringAt PROC
+		push r12
+		push r13
+		push r14
+		
+		; Save params
+		mov r12, rcx
+		mov r13, rdx
+		mov r14, r8
+		
+		; Position cursor
+		mov rcx, r12
+		mov rdx, r13
+		call SetCursorPosition
+		
+		; Calculate string length
+		mov rdi, r14
+		xor rcx, rcx
+		
+	StrLenLoop:
+		mov al, byte ptr [rdi + rcx]
+		test al, al
+		jz StrLenDone
+		inc rcx
+		jmp StrLenLoop
+		
+	StrLenDone:
+		; RCX now has length
+		
+		; Write string
+		sub rsp, 40
+		
+		mov r8, rcx ; Length
+		mov rcx, consoleHandle
+		mov rdx, r14 ; String address
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		
+		call WriteConsoleA
+		
+		add rsp, 40
+		
+		pop r14
+		pop r13
+		pop r12
+		ret
+	WriteStringAt ENDP
+
+	; DrawMenu - Draw the menu screen
+	DrawMenu PROC
+		call ClearScreen
+		
+		; Draw title
+		mov rcx, 0
+		mov rdx, 2
+		lea r8, titleLine1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 3
+		lea r8, titleLine2
+		call WriteStringAt
+		
+		; Check if first time or next game
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jnz DrawPostGameMenu
+		
+		; Draw initial menu
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, groupTitle
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, member1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 7
+		lea r8, member2
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 8
+		lea r8, member3
+		call WriteStringAt
+		
+		; Draw menu options
+		call DrawMenuOptions
+		jmp DrawMenuEnd
+		
+	DrawPostGameMenu:
+		; Draw scores
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, highScoreText
+		call WriteStringAt
+		
+		; Draw high score number
+		mov rax, highScore
+		call ConvertScoreToString
+		mov r10, rcx
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		mov r8, r10
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Draw your score label
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, yourScoreText
+		call WriteStringAt
+		
+		; Draw your score number
+		mov rax, lastScore
+		call ConvertScoreToString
+		mov r10, rcx
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, scoreBuffer
+		mov r8, r10
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Draw menu options
+		call DrawMenuOptions
+		
+	DrawMenuEnd:
+		; Draw navigation help
+		mov rcx, 0
+		mov rdx, 22
+		lea r8, navHelp
+		call WriteStringAt
+		
+		ret
+	DrawMenu ENDP
+
+	; DrawMenuOptions - Draw menu options
+	DrawMenuOptions PROC
+		push r12
+		push r13
+		
+		; Determine Y starting position based on hasPlayedOnce
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jz FirstTimeMenu
+		
+		; Next game menu position
+		mov r12, 9
+		jmp DrawOptions
+		
+	FirstTimeMenu:
+		; Initial menu position
+		mov r12, 11
+		
+	DrawOptions:
+		; Option 1: PLAY / PLAY AGAIN
+		mov r13, r12 ; save Y pos
+		
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
+		mov rax, menuSelection
+		test rax, rax
+		jnz NotPlaySelected
+		lea r8, menuArrow
+		jmp DrawPlayArrow
+	NotPlaySelected:
+		lea r8, menuSpace
+		
+	DrawPlayArrow:
+		call WriteStringAt
+		
+		; Draw PLAY or PLAY AGAIN
+		mov rcx, 6 ; X position after arrow/space
+		mov rdx, r13 ; Same Y
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jz DrawPlay
+		lea r8, menuPlayAgain
+		jmp DrawPlayText
+	DrawPlay:
+		lea r8, menuPlay
+	DrawPlayText:
+		call WriteStringAt
+		
+		; Option 2: HOW TO PLAY
+		inc r12
+		mov r13, r12
+		
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
+		mov rax, menuSelection
+		cmp rax, 1
+		jne NotInstSelected
+		lea r8, menuArrow
+		jmp DrawInstArrow
+	NotInstSelected:
+		lea r8, menuSpace
+		
+	DrawInstArrow:
+		call WriteStringAt
+		
+		; Draw HOW TO PLAY
+		mov rcx, 6
+		mov rdx, r13
+		lea r8, menuInstructions
+		call WriteStringAt
+		
+		; Option 3: EXIT
+		inc r12
+		mov r13, r12
+		
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
+		mov rax, menuSelection
+		cmp rax, 2
+		jne NotExitSelected
+		lea r8, menuArrow
+		jmp DrawExitArrow
+	NotExitSelected:
+		lea r8, menuSpace
+		
+	DrawExitArrow:
+		call WriteStringAt
+		
+		; Draw EXIT
+		mov rcx, 6
+		mov rdx, r13
+		lea r8, menuExit
+		call WriteStringAt
+		
+		pop r13
+		pop r12
+		ret
+	DrawMenuOptions ENDP
+
+	; WaitForKeyRelease - Wait until specific key is released
+	; Params: RCX = key code
+	WaitForKeyRelease PROC
+		push r12
+		mov r12, rcx ; Save key code
+		
+	WaitReleaseLoop:
+		sub rsp, 32
+		mov rcx, r12 ; Use saved key code
+		call GetAsyncKeyState
+		add rsp, 32
+		
+		test ax, 8000h ; Check if still pressed
+		jnz WaitReleaseLoop ; If yes keep waiting
+		
+		pop r12
+		ret
+	WaitForKeyRelease ENDP
+
+	; MenuInput - Handle menu input
+	; Returns: RAX = 1 if Enter pressed, 0 if not
+	MenuInput PROC
+		sub rsp, 32
+		
+		; Check Down arrow
+		mov rcx, 28h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckUpArrow
+		
+		; Move selection down
+		mov rax, menuSelection
+		inc rax
+		cmp rax, 3 ; Wrap around (0, 1, 2)
+		jl NoWrapDown
+		xor rax, rax ; Wrap to 0
+	NoWrapDown:
+		mov menuSelection, rax
+		
+		; Wait for key release to prevent scrolling through whole menu milion times
+		mov rcx, 28h
+		call WaitForKeyRelease
+		
+		; Redraw menu with new selection
+		call DrawMenuOptions
+		
+		xor rax, rax ; Return 0 (not Enter)
+		jmp MenuInputEnd
+		
+	CheckUpArrow:
+		; Check Up arrow
+		mov rcx, 26h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckEnter
+		
+		; Move selection up
+		mov rax, menuSelection
+		dec rax
+		cmp rax, 0
+		jge NoWrapUp
+		mov rax, 2 ; Wrap to 2
+	NoWrapUp:
+		mov menuSelection, rax
+		
+		; Wait for key release
+		mov rcx, 26h
+		call WaitForKeyRelease
+		
+		; Redraw menu
+		call DrawMenuOptions
+		
+		xor rax, rax ; Return 0 (not Enter)
+		jmp MenuInputEnd
+		
+	CheckEnter:
+		; Check Enter key
+		mov rcx, 0Dh
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz NoInput
+		
+		; Wait for release
+		mov rcx, 0Dh
+		call WaitForKeyRelease
+		
+		mov rax, 1 ; Return 1 (Enter pressed)
+		jmp MenuInputEnd
+		
+	NoInput:
+		xor rax, rax ; Return 0
+		
+	MenuInputEnd:
+		add rsp, 32
+		ret
+	MenuInput ENDP
+
+	; ShowInstructions - Display instructions
+	ShowInstructions PROC
+		call ClearScreen
+		
+		; Draw title
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, instTitle
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, titleLine2
+		call WriteStringAt
+		
+		; Draw instruction lines
+		mov rcx, 0
+		mov rdx, 8
+		lea r8, instLine1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 9
+		lea r8, instLine2
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 10
+		lea r8, instLine3
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 12
+		lea r8, instLine4
+		call WriteStringAt
+		
+		; Wait for any key press
+	WaitForKey:
+		sub rsp, 32
+		mov rcx, 10
+		call Sleep
+		add rsp, 32
+		
+		; Check for any key
+		; I did not have time to check every key so just few common ones
+		sub rsp, 32 
+		mov rcx, 0Dh ; Enter
+		call GetAsyncKeyState
+		add rsp, 32
+		test ax, 8000h
+		jnz KeyPressed
+		
+		sub rsp, 32
+		mov rcx, 1Bh ; Escape
+		call GetAsyncKeyState
+		add rsp, 32
+		test ax, 8000h
+		jnz KeyPressed
+		
+		sub rsp, 32
+		mov rcx, 20h ; Space
+		call GetAsyncKeyState
+		add rsp, 32
+		test ax, 8000h
+		jnz KeyPressed
+		
+		jmp WaitForKey
+		
+	KeyPressed:
+		; Wait for release
+		sub rsp, 32
+		mov rcx, 200
+		call Sleep
+		add rsp, 32
+		
+		ret
+	ShowInstructions ENDP
+
+	; InitGame - Initialize/reset game state for new game
+	InitGame PROC
+		; Reset game variables
+		mov gameOver, 0
+		mov direction, 3 ; Start moving right
+		
+		; Reset snake position
+		mov snakeHeadX, 40
+		mov snakeHeadY, 12
+
+		; Reset score
+		mov score, 0
+		
+		; Reset snake
+		call InitSnake
+		
+		ret
+	InitGame ENDP
 END
