@@ -19,17 +19,17 @@ Requires Visual Studio 2022 with MASM for x64.
 
 ### Game States
 
-![Game State Machine](Assets/13-Game-State-Machine.png)
+<img src="Assets/13-Game-State-Machine.png" width="300">
 
 ### Main Program Flow
 
-![Main Program Flow](Assets/1-Main-Program-Flow.png)
+<img src="Assets/1-Main-Program-Flow.png" width="300">
 
 ### Game Loop
 
 Each frame: check input (3x for responsiveness) → move snake → check collisions → update display.
 
-![Game Loop](Assets/11-Detailed-Game-Loop.png)
+<img src="Assets/11-Detailed-Game-Loop.png" width="300">
 
 ### Core Systems
 
