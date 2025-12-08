@@ -77,7 +77,7 @@ EXTRN GetTickCount: PROC
     consoleTitle BYTE 'Assembly Snake Game', 0
 	
 	; Menu strings
-	titleLine1 BYTE '         SNAKE GAME', 0
+	titleLine1 BYTE '       SNAKE ASM GAME', 0
 	titleLine2 BYTE '    =====================', 0
 	
 	authorTitle BYTE '    Project by:', 0
