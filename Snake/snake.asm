@@ -1536,7 +1536,14 @@ EXTRN GetTickCount: PROC
 		mov snakeHeadX, 40
 		mov snakeHeadY, 12
 
-		; Reset speed
+		; Rendom initial direction
+		sub rsp, 32
+		call rand
+		add rsp, 32
+
+		and rax, 3
+		mov direction, rax
+
 		mov rax, startSpeed
 		mov gameSpeed, rax
 
