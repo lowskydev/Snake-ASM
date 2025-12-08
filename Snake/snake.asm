@@ -1326,7 +1326,7 @@ EXTRN rand: PROC
 		call WaitForKeyRelease
 		
 		; Redraw menu with new selection
-		call DrawMenu
+		call DrawMenuOptions
 		
 		xor rax, rax ; Return 0 (not Enter)
 		jmp MenuInputEnd
@@ -1352,7 +1352,7 @@ EXTRN rand: PROC
 		call WaitForKeyRelease
 		
 		; Redraw menu
-		call DrawMenu
+		call DrawMenuOptions
 		
 		xor rax, rax ; Return 0 (not Enter)
 		jmp MenuInputEnd
