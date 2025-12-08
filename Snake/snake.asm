@@ -1102,4 +1102,114 @@ EXTRN rand: PROC
 		
 		ret
 	DrawMenu ENDP
+
+	; DrawMenuOptions - Draw the menu options
+	DrawMenuOptions PROC
+		push r12
+		
+		; Determine Y starting position based on hasPlayedOnce
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jz FirstTimeMenu
+		
+		; Next game menu position
+		mov r12, 9
+		jmp DrawOptions
+		
+	FirstTimeMenu:
+		; Initial menu position
+		mov r12, 11
+		
+	DrawOptions:
+		; Option 1: PLAY
+		mov rcx, 0
+		mov rdx, r12
+		
+		; If selected draw an arrow if not draw spaces
+		mov rax, menuSelection
+		test rax, rax
+		jnz NotPlaySelected
+		lea r8, menuArrow
+		jmp DrawPlayOption
+	NotPlaySelected:
+		lea r8, menuSpace
+		
+	DrawPlayOption:
+		call WriteStringAt
+		
+		; Draw PLAY or PLAY AGAIN text
+		mov rax, hasPlayedOnce
+		test rax, rax
+		jz DrawPlay
+		lea r8, menuPlayAgain
+		jmp WritePlay
+	DrawPlay:
+		lea r8, menuPlay
+	WritePlay:
+		sub rsp, 40
+		mov rcx, consoleHandle
+		mov rdx, r8
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Option 2: HOW TO PLAY
+		inc r12
+		mov rcx, 0
+		mov rdx, r12
+		
+		; If selected draw an arrow if not draw spaces
+		mov rax, menuSelection
+		cmp rax, 1
+		jne NotInstSelected
+		lea r8, menuArrow
+		jmp DrawInstOption
+	NotInstSelected:
+		lea r8, menuSpace
+		
+	DrawInstOption:
+		; Draw Instruction option
+		call WriteStringAt
+		lea r8, menuInstructions
+		sub rsp, 40
+		mov rcx, consoleHandle
+		mov rdx, r8
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		; Option 3: EXIT
+		inc r12
+		mov rcx, 0
+		mov rdx, r12
+		
+		; If selected draw an arrow if not draw spaces
+		mov rax, menuSelection
+		cmp rax, 2
+		jne NotExitSelected
+		lea r8, menuArrow
+		jmp DrawExitOption
+	NotExitSelected:
+		lea r8, menuSpace
+		
+	DrawExitOption:
+		; Draw EXIT option
+		call WriteStringAt
+		lea r8, menuExit
+		sub rsp, 40
+		mov rcx, consoleHandle
+		mov rdx, r8
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+		
+		pop r12
+		ret
+	DrawMenuOptions ENDP
 END
