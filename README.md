@@ -1,6 +1,10 @@
 <h1 align="center">Assembly Snake Game</h1>
 
-![Snake Demo](Assets/snake-demo.gif)
+<div align="center">
+  <img src="Assets/snake-demo.gif" width="500">
+</div>
+
+<br>
 
 A classic Snake game written in x64 Assembly (MASM) for Windows.
 
