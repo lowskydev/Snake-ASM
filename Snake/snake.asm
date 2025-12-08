@@ -52,6 +52,7 @@ EXTRN GetTickCount: PROC
 	
 	; Direction (0=Up, 1=Down, 2=Left, 3=Right)
 	direction QWORD 3
+	nextDirection QWORD 3
 
 	; Snake body
 	bodyChar BYTE '+', 0
