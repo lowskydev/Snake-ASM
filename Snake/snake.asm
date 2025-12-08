@@ -1372,24 +1372,30 @@ EXTRN rand: PROC
 		; Wait for any key press
 	WaitForKey:
 		sub rsp, 32
-		mov rcx, 50
+		mov rcx, 10
 		call Sleep
 		add rsp, 32
 		
 		; Check for any key
 		; I did not have time to check every key so just few common ones
+		sub rsp, 32 
 		mov rcx, 0Dh ; Enter
 		call GetAsyncKeyState
+		add rsp, 32
 		test ax, 8000h
 		jnz KeyPressed
 		
+		sub rsp, 32
 		mov rcx, 1Bh ; Escape
 		call GetAsyncKeyState
+		add rsp, 32
 		test ax, 8000h
 		jnz KeyPressed
 		
+		sub rsp, 32
 		mov rcx, 20h ; Space
 		call GetAsyncKeyState
+		add rsp, 32
 		test ax, 8000h
 		jnz KeyPressed
 		
