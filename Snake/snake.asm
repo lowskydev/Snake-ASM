@@ -11,6 +11,8 @@ EXTRN SetConsoleCursorInfo: PROC
 EXTRN srand: PROC
 EXTRN rand: PROC
 
+EXTRN GetTickCount: PROC
+
 .data
 	consoleHandle QWORD ? ; Console output handle
     bytesWritten DWORD ? ; Required by WriteConsoleA
@@ -695,8 +697,10 @@ EXTRN rand: PROC
 	InitRandom PROC
 		sub rsp, 32 ; Shadow
 		
-		call rand
-		mov rcx, rax ; Use first rand value as seed
+		; Get system tick as seed
+		call GetTickCount
+
+		mov rcx, rax
 		call srand
 		
 		add rsp, 32
