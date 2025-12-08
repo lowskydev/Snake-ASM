@@ -1,4 +1,6 @@
-# Assembly Snake Game
+<h1 align="center">Assembly Snake Game</h1>
+
+![Snake Demo](Assets/snake-demo.gif)
 
 A classic Snake game written in x64 Assembly (MASM) for Windows.
 
