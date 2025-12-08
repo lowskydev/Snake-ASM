@@ -67,10 +67,10 @@ EXTRN rand: PROC
 	member2 BYTE '    - Valerii Matviiv (75176)', 0
 	member3 BYTE '    - Markiian Voloshyn (75528)', 0
 	
-	menuPlay BYTE '      PLAY', 0
-	menuPlayAgain BYTE '      PLAY AGAIN', 0
-	menuInstructions BYTE '      HOW TO PLAY', 0
-	menuExit BYTE '      EXIT', 0
+	menuPlay BYTE '   PLAY', 0
+	menuPlayAgain BYTE '   PLAY AGAIN', 0
+	menuInstructions BYTE '   HOW TO PLAY', 0
+	menuExit BYTE '   EXIT', 0
 	
 	menuArrow BYTE '    > ', 0
 	menuSpace BYTE '      ', 0
@@ -1134,9 +1134,10 @@ EXTRN rand: PROC
 		ret
 	DrawMenu ENDP
 
-	; DrawMenuOptions - Draw the menu options
+	; DrawMenuOptions - Draw menu options
 	DrawMenuOptions PROC
 		push r12
+		push r13
 		
 		; Determine Y starting position based on hasPlayedOnce
 		mov rax, hasPlayedOnce
@@ -1152,94 +1153,85 @@ EXTRN rand: PROC
 		mov r12, 11
 		
 	DrawOptions:
-		; Option 1: PLAY
-		mov rcx, 0
-		mov rdx, r12
+		; Option 1: PLAY / PLAY AGAIN
+		mov r13, r12 ; save Y pos
 		
-		; If selected draw an arrow if not draw spaces
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
 		mov rax, menuSelection
 		test rax, rax
 		jnz NotPlaySelected
 		lea r8, menuArrow
-		jmp DrawPlayOption
+		jmp DrawPlayArrow
 	NotPlaySelected:
 		lea r8, menuSpace
 		
-	DrawPlayOption:
+	DrawPlayArrow:
 		call WriteStringAt
 		
-		; Draw PLAY or PLAY AGAIN text
+		; Draw PLAY or PLAY AGAIN
+		mov rcx, 6 ; X position after arrow/space
+		mov rdx, r13 ; Same Y
 		mov rax, hasPlayedOnce
 		test rax, rax
 		jz DrawPlay
 		lea r8, menuPlayAgain
-		jmp WritePlay
+		jmp DrawPlayText
 	DrawPlay:
 		lea r8, menuPlay
-	WritePlay:
-		sub rsp, 40
-		mov rcx, consoleHandle
-		mov rdx, r8
-		mov r8, 20
-		lea r9, bytesWritten
-		mov qword ptr [rsp+32], 0
-		call WriteConsoleA
-		add rsp, 40
+	DrawPlayText:
+		call WriteStringAt
 		
 		; Option 2: HOW TO PLAY
 		inc r12
-		mov rcx, 0
-		mov rdx, r12
+		mov r13, r12
 		
-		; If selected draw an arrow if not draw spaces
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
 		mov rax, menuSelection
 		cmp rax, 1
 		jne NotInstSelected
 		lea r8, menuArrow
-		jmp DrawInstOption
+		jmp DrawInstArrow
 	NotInstSelected:
 		lea r8, menuSpace
 		
-	DrawInstOption:
-		; Draw Instruction option
+	DrawInstArrow:
 		call WriteStringAt
+		
+		; Draw HOW TO PLAY
+		mov rcx, 6
+		mov rdx, r13
 		lea r8, menuInstructions
-		sub rsp, 40
-		mov rcx, consoleHandle
-		mov rdx, r8
-		mov r8, 20
-		lea r9, bytesWritten
-		mov qword ptr [rsp+32], 0
-		call WriteConsoleA
-		add rsp, 40
+		call WriteStringAt
 		
 		; Option 3: EXIT
 		inc r12
-		mov rcx, 0
-		mov rdx, r12
+		mov r13, r12
 		
-		; If selected draw an arrow if not draw spaces
+		; Draw arrow or space
+		mov rcx, 0
+		mov rdx, r13
 		mov rax, menuSelection
 		cmp rax, 2
 		jne NotExitSelected
 		lea r8, menuArrow
-		jmp DrawExitOption
+		jmp DrawExitArrow
 	NotExitSelected:
 		lea r8, menuSpace
 		
-	DrawExitOption:
-		; Draw EXIT option
+	DrawExitArrow:
 		call WriteStringAt
-		lea r8, menuExit
-		sub rsp, 40
-		mov rcx, consoleHandle
-		mov rdx, r8
-		mov r8, 20
-		lea r9, bytesWritten
-		mov qword ptr [rsp+32], 0
-		call WriteConsoleA
-		add rsp, 40
 		
+		; Draw EXIT
+		mov rcx, 6
+		mov rdx, r13
+		lea r8, menuExit
+		call WriteStringAt
+		
+		pop r13
 		pop r12
 		ret
 	DrawMenuOptions ENDP
