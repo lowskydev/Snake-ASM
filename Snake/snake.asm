@@ -1607,7 +1607,6 @@ EXTRN GetTickCount: PROC
 	InitGame PROC
 		; Reset game variables
 		mov gameOver, 0
-		mov direction, 3 ; Start moving right
 		
 		; Reset snake position
 		mov snakeHeadX, 40
@@ -1620,6 +1619,7 @@ EXTRN GetTickCount: PROC
 
 		and rax, 3
 		mov direction, rax
+		mov nextDirection, rax
 
 		mov rax, startSpeed
 		mov gameSpeed, rax
