@@ -429,6 +429,10 @@ EXTRN GetTickCount: PROC
 		push r12
 		push r13
 
+		; Apply buffered direction at START of move
+		mov rax, nextDirection
+		mov direction, rax
+
 		; Save old head position
 		mov r12w, snakeHeadX
 		mov r13w, snakeHeadY
