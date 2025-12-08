@@ -1381,4 +1381,34 @@ EXTRN rand: PROC
 		
 		ret
 	ShowInstructions ENDP
+
+	; InitGame - Initialize/reset game state for new game
+	InitGame PROC
+		; Reset game variables
+		mov gameOver, 0
+		mov direction, 3 ; Start moving right
+		
+		; Reset snake position
+		mov snakeHeadX, 40
+		mov snakeHeadY, 12
+		
+		; Save current score as last score
+		mov rax, score
+		mov lastScore, rax
+		
+		; Update high score if needed
+		mov rbx, highScore
+		cmp rax, rbx
+		jle NoNewHighScore
+		mov highScore, rax
+		
+	NoNewHighScore:
+		; Reset score for new game
+		mov score, 0
+		
+		; Reset snake
+		call InitSnake
+		
+		ret
+	InitGame ENDP
 END
