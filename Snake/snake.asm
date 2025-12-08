@@ -635,6 +635,20 @@ EXTRN GetTickCount: PROC
 	ShowGameOver PROC
 		push r12
 
+		; Erase the high score display
+		mov rcx, 82
+		mov rdx, 0
+		call SetCursorPosition
+		
+		sub rsp, 40
+		mov rcx, consoleHandle
+		lea rdx, clearSpaces
+		mov r8, 20
+		lea r9, bytesWritten
+		mov qword ptr [rsp+32], 0
+		call WriteConsoleA
+		add rsp, 40
+
 		; Erase the length display
 		mov rcx, 82
 		mov rdx, 2
