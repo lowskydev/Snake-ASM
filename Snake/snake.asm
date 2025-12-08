@@ -1231,4 +1231,82 @@ EXTRN rand: PROC
 		pop r12
 		ret
 	WaitForKeyRelease ENDP
+
+	; MenuInput - Handle menu input
+	; Returns: RAX = 1 if Enter pressed, 0 if not
+	MenuInput PROC
+		sub rsp, 32
+		
+		; Check Down arrow
+		mov rcx, 28h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckUpArrow
+		
+		; Move selection down
+		mov rax, menuSelection
+		inc rax
+		cmp rax, 3 ; Wrap around (0, 1, 2)
+		jl NoWrapDown
+		xor rax, rax ; Wrap to 0
+	NoWrapDown:
+		mov menuSelection, rax
+		
+		; Wait for key release to prevent scrolling through whole menu milion times
+		mov rcx, 28h
+		call WaitForKeyRelease
+		
+		; Redraw menu with new selection
+		call DrawMenu
+		
+		xor rax, rax ; Return 0 (not Enter)
+		jmp MenuInputEnd
+		
+	CheckUpArrow:
+		; Check Up arrow
+		mov rcx, 26h
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz CheckEnter
+		
+		; Move selection up
+		mov rax, menuSelection
+		dec rax
+		cmp rax, 0
+		jge NoWrapUp
+		mov rax, 2 ; Wrap to 2
+	NoWrapUp:
+		mov menuSelection, rax
+		
+		; Wait for key release
+		mov rcx, 26h
+		call WaitForKeyRelease
+		
+		; Redraw menu
+		call DrawMenu
+		
+		xor rax, rax ; Return 0 (not Enter)
+		jmp MenuInputEnd
+		
+	CheckEnter:
+		; Check Enter key
+		mov rcx, 0Dh
+		call GetAsyncKeyState
+		test ax, 8000h
+		jz NoInput
+		
+		; Wait for release
+		mov rcx, 0Dh
+		call WaitForKeyRelease
+		
+		mov rax, 1 ; Return 1 (Enter pressed)
+		jmp MenuInputEnd
+		
+	NoInput:
+		xor rax, rax ; Return 0
+		
+	MenuInputEnd:
+		add rsp, 32
+		ret
+	MenuInput ENDP
 END
