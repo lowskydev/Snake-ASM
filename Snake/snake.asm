@@ -30,7 +30,6 @@ EXTRN rand: PROC
     scoreLabel BYTE 'Score: ', 0
     scoreLabelLen EQU $ - scoreLabel - 1
 	scoreBuffer BYTE 20 DUP(0) ; Buffer for score as string
-	scoreBuffer2 BYTE 20 DUP(0) ; Second buffer for displaying two scores
 
     score QWORD 0 ; Player score
 
@@ -667,7 +666,6 @@ EXTRN rand: PROC
 		
 		; Convert and display final score
 		mov rax, score
-		lea rdi, scoreBuffer
 		call ConvertScoreToString
 		
 		sub rsp, 40
@@ -872,8 +870,8 @@ EXTRN rand: PROC
 	CheckSelfCollision ENDP
 
 	; ConvertScoreToString - Convert score to string
-	; Input: RAX = score value to convert, RDI = buffer address
-	; Output: Buffer at RDI contains string
+	; Input: RAX = score
+	; Output: scoreBuffer containing string
 	; Returns: RCX = string length
 	ConvertScoreToString PROC
 		push rbx
@@ -881,70 +879,65 @@ EXTRN rand: PROC
 		push r12
 		push r13
 		
-		mov r13, rax ; Save the score value passed in RAX
-		mov r12, rdi ; Save buffer address
+		mov r13, rax ; SAVE the score value from RAX parameter
 		
 		; Clear the buffer
 		mov rcx, 20
-		mov rdi, r12
+		lea rdi, scoreBuffer
 		mov al, 0
 		rep stosb
 		
 		; When score = 0
-		test r13, r13
+		test r13, r13  ; Use saved value not global score
 		jnz NotZero
 		
-		mov rdi, r12
+		lea rdi, scoreBuffer
 		mov byte ptr [rdi], '0'
 		mov rcx, 1
 		jmp ConvertDone
 
 	NotZero:
 		; Convert number to string
-		mov rdi, r12
+		lea rdi, scoreBuffer
 		mov rbx, 10 ; Divisor
-		xor rcx, rcx ; Digit counter (reusing rcx is fine here)
+		xor r12, r12 ; Digit counter
 		
-		mov rax, r13 ; Use saved score value
+		mov rax, r13  ; Use saved value not global score
 
 	ConvertLoop:
 		xor rdx, rdx
 		div rbx ; Divide by 10 (remainder in RDX)
 		add dl, '0' ; Convert to ASCII
-		mov [rdi + rcx], dl ; Store digit
-		inc rcx ; Count digit
+		mov [rdi + r12], dl ; Store digit
+		inc r12 ; Count digit
 		
 		test rax, rax ; Check if done
 		jnz ConvertLoop
 		
 		; Reverse the string
-		; RCX has string length
-		push rcx ; Save length for return
-		shr rcx, 1 ; Divide by 2 for swap count
-		mov rdi, r12
-		mov rsi, r12
-		pop rax ; Get length back
-		push rax ; Keep it for return
-		add rsi, rax
+		mov rcx, r12 ; String length
+		shr r12, 1 ; Divide by 2
+		lea rdi, scoreBuffer
+		lea rsi, scoreBuffer
+		add rsi, rcx
 		dec rsi ; Point to last char
 		
 	ReverseLoop:
-		test rcx, rcx
+		test r12, r12
 		jz ConvertDone
 		
 		; Swap characters
-		mov bl, [rdi]
-		mov dl, [rsi]
-		mov [rdi], dl
-		mov [rsi], bl
+		mov al, [rdi]
+		mov bl, [rsi]
+		mov [rdi], bl
+		mov [rsi], al
 		
 		inc rdi
 		dec rsi
-		dec rcx
+		dec r12
 		jmp ReverseLoop
 
 	ConvertDone:
-		pop rcx ; Return string length in RCX
 		pop r13
 		pop r12
 		pop rdi
@@ -973,7 +966,6 @@ EXTRN rand: PROC
 		
 		; Convert score to string
 		mov rax, score
-		lea rdi, scoreBuffer
 		call ConvertScoreToString
 		
 		; Write the score number
@@ -1143,7 +1135,6 @@ EXTRN rand: PROC
 		
 		; Draw high score number
 		mov rax, highScore
-		lea rdi, scoreBuffer
 		call ConvertScoreToString
 		mov r10, rcx
 		
@@ -1164,13 +1155,12 @@ EXTRN rand: PROC
 		
 		; Draw your score number
 		mov rax, lastScore
-		lea rdi, scoreBuffer2
 		call ConvertScoreToString
 		mov r10, rcx
 		
 		sub rsp, 40
 		mov rcx, consoleHandle
-		lea rdx, scoreBuffer2
+		lea rdx, scoreBuffer
 		mov r8, r10
 		lea r9, bytesWritten
 		mov qword ptr [rsp+32], 0
