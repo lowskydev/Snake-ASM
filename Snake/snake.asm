@@ -1309,4 +1309,76 @@ EXTRN rand: PROC
 		add rsp, 32
 		ret
 	MenuInput ENDP
+
+	; ShowInstructions - Display instructions
+	ShowInstructions PROC
+		call ClearScreen
+		
+		; Draw title
+		mov rcx, 0
+		mov rdx, 5
+		lea r8, instTitle
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 6
+		lea r8, titleLine2
+		call WriteStringAt
+		
+		; Draw instruction lines
+		mov rcx, 0
+		mov rdx, 8
+		lea r8, instLine1
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 9
+		lea r8, instLine2
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 10
+		lea r8, instLine3
+		call WriteStringAt
+		
+		mov rcx, 0
+		mov rdx, 12
+		lea r8, instLine4
+		call WriteStringAt
+		
+		; Wait for any key press
+	WaitForKey:
+		sub rsp, 32
+		mov rcx, 50
+		call Sleep
+		add rsp, 32
+		
+		; Check for any key
+		; I did not have time to check every key so just few common ones
+		mov rcx, 0Dh ; Enter
+		call GetAsyncKeyState
+		test ax, 8000h
+		jnz KeyPressed
+		
+		mov rcx, 1Bh ; Escape
+		call GetAsyncKeyState
+		test ax, 8000h
+		jnz KeyPressed
+		
+		mov rcx, 20h ; Space
+		call GetAsyncKeyState
+		test ax, 8000h
+		jnz KeyPressed
+		
+		jmp WaitForKey
+		
+	KeyPressed:
+		; Wait for release
+		sub rsp, 32
+		mov rcx, 200
+		call Sleep
+		add rsp, 32
+		
+		ret
+	ShowInstructions ENDP
 END
