@@ -155,7 +155,7 @@ EXTRN GetTickCount: PROC
 		; Initialize game
 		call InitGame
 
-	 ; Clear screen and draw game
+		 ; Clear screen and draw game
 		call ClearScreen
 		call DrawWalls
 		call DrawSnakeHead
@@ -196,7 +196,6 @@ EXTRN GetTickCount: PROC
 
 		call UpdateScore
 		call DisplayScore
-		call DisplayHighScore
 		call DisplayLength
 
 		; Check if snake ate food
@@ -1600,7 +1599,7 @@ EXTRN GetTickCount: PROC
 		mov snakeHeadX, 40
 		mov snakeHeadY, 12
 
-		; Rendom initial direction
+		; Random initial direction
 		sub rsp, 32
 		call rand
 		add rsp, 32
